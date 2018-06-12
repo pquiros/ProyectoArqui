@@ -12,15 +12,15 @@ public class Cache {
 
     }
 
-    public boolean checkCache() {
+    public boolean checkCache(int bloque) {
         return;
     }
 
-    public getFromCache() {
+    /*public getFromCache(int bloque, int palabra) {
 
-    }
+    }*/
 
-    public void loadFromMemory() {
+    public void loadFromMemory(int bloque) {
 
     }
 }
