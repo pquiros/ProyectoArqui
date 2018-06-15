@@ -1,4 +1,4 @@
-
+import java.lang.Thread;
 
 public class Nucleo implements Runnable {
 
@@ -40,16 +40,19 @@ public class Nucleo implements Runnable {
     void falloDeCache(){
         if(id==0){
             hijoSuicida = new HijoSuicida();
-            Threat hilo= new Threat(hijoSuicida);
+            Thread hilo= new Thread(hijoSuicida);
             hilo.start();
         }
     }
 
-    void run(){
+    public void run(){
 
     }
     private class HijoSuicida implements Runnable{
         public HijoSuicida(){}
-        public run(){}
+        @Override
+        public void run() {
+
+        }
     }
 }
