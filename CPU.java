@@ -19,7 +19,7 @@ public class CPU {
     Nucleo n1;
 
 
-    public static void main(String [] args) {
+    public void start(String [] args) {
         quatum = Integer.parseInt(args[0]);
         int nHilillos = 0;
         for(int i=0; i<nHilillos; i++){
@@ -32,6 +32,11 @@ public class CPU {
             }
         }
 
-        n0= new Nucleo();
+        //n0= new Nucleo();
+    }
+
+    public static void main(String [] args){
+        CPU cpu = new CPU();
+        cpu.start(args);
     }
 }

@@ -31,11 +31,11 @@ public class Cache {
     }
 
     public boolean checkCache(int bloque) {
-        return;
+        return true;
     }
 
-    public getFromCache(int bloque, int palabra) {
-
+    public int getFromCache(int bloque, int palabra) {
+        return 0;
     }
 
     public void loadFromMemory(int bloque) {
