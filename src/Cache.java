@@ -1,3 +1,5 @@
+package src;
+
 public class Cache {
 
     public CPU cpu;

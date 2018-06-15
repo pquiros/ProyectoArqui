@@ -1,7 +1,10 @@
+package src;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import  java.util.LinkedList;
+import java.util.Scanner;
 
 public class CPU {
     //COLA de contextos
@@ -19,8 +22,8 @@ public class CPU {
     Nucleo n1;
 
 
-    public void start(String [] args) {
-        quatum = Integer.parseInt(args[0]);
+    public void start(int qntm) {
+        quatum = qntm;
         int nHilillos = 0;
         for(int i=0; i<nHilillos; i++){
             try {
@@ -35,8 +38,27 @@ public class CPU {
         //n0= new Nucleo();
     }
 
-    public static void main(String [] args){
+    public static void main(String[] args){
+        String mens1 = "Introdusca el quantum que desea asignar al programa";
+        String mens2 = "Debe introducir un numero";
         CPU cpu = new CPU();
-        cpu.start(args);
+        int qntm = 0;
+        String s;
+        boolean isNumber = false;
+        System.out.println(mens1);
+
+        while(qntm < 1 && !isNumber){
+            Scanner scan = new Scanner(System.in);
+            s = scan.next();
+
+            try {
+                qntm = Integer.parseInt(s);
+                isNumber = true;
+                cpu.start(qntm);
+            }
+            catch (NumberFormatException e){
+                System.out.println(mens2);
+            }
+        }
     }
 }

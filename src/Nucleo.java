@@ -1,3 +1,5 @@
+package src;
+
 import java.lang.Thread;
 
 import java.io.BufferedReader;
