@@ -1,6 +1,11 @@
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.lang.Runnable;
 
-public class Nucleo implements runnable {
+public class Nucleo implements Runnable {
 
     CPU cpu;
     int registrosHilo0[];
@@ -41,8 +46,44 @@ public class Nucleo implements runnable {
     void run(){
 
     }
-    private class HijoSuicida implements runnable{
+    private class HijoSuicida implements Runnable{
         public HijoSuicida(){}
         public run(){}
+    }
+
+
+    public void leerArchivo() {
+
+        String file = "RUTA DEL ARCHIVO";
+        BufferedReader br = null;
+        String line = "";
+        String separador = " ";
+
+        try {
+
+            br = new BufferedReader(new FileReader(file));
+            while ((line = br.readLine()) != null) {
+
+                // use comma as separator
+                String[] linea = line.split(separador);
+
+                System.out.println("Codigo Operacion : " + linea[0] + " , registroD=" + linea[1] + " , registrof=" + linea[2] + " , inmediato=" + linea[3]);
+
+            }
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
     }
 }
