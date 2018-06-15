@@ -1,3 +1,4 @@
+import java.lang.Thread;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -13,10 +14,14 @@ public class Nucleo implements Runnable {
     int pc[];
     int id;
     int idHilillo;
+    Cache cacheI;
+    Cache cacheD;
 
     HijoSuicida hijoSuicida;
 
-    public Nucleo(int tipo) {
+    public Nucleo(int tipo, Cache cD,Cache  cI) {
+        cacheD= cD;
+        cacheI= cI;
         registrosHilo0 = new int[32];
 
         if (tipo == 0) {
@@ -33,22 +38,30 @@ public class Nucleo implements Runnable {
 
     void cargarHilillo(){}
     void fetch(){}
-    void ejecutarI(String instruccion){}
+    void ejecutarI(String instruccion){
+
+        switch(2){}
+    }
     int convertDirBloque(int dir){return 0;}
     void LW(){}
     void SW(){}
     void falloDeCache(){
         if(id==0){
-            hijoSuicida.run();
+            hijoSuicida = new HijoSuicida();
+            Thread hilo= new Thread(hijoSuicida);
+            hilo.start();
         }
     }
 
-    void run(){
+    public void run(){
 
     }
     private class HijoSuicida implements Runnable{
         public HijoSuicida(){}
-        public run(){}
+        @Override
+        public void run() {
+
+        }
     }
 
 
