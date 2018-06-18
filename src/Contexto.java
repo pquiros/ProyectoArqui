@@ -9,4 +9,9 @@ public class Contexto {
         pc=p;
         id=i;
     }
+    public Contexto(int[] r, int p, int i){
+        registros= r;
+        pc=p;
+        id=i;
+    }
 }

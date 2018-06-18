@@ -14,8 +14,9 @@ public class Nucleo implements Runnable {
     int registrosHilo0[];
     int registrosHilo1[];
     int pc[];
+    int idHilillo[];// nombre del hilillo
     int id;
-    int idHilillo;
+    int hililloP;// hilillo principal
     Cache cacheI;
     Cache cacheD;
 
@@ -30,17 +31,34 @@ public class Nucleo implements Runnable {
         if (tipo == 0) {
             registrosHilo1 = new int[32];
             pc = new int[2];
+            idHilillo = new int[2];
             hijoSuicida = new HijoSuicida();
         }else {
             pc = new int[1];
+            idHilillo = new int[1];
         }
 
         id = tipo;
-        idHilillo = 0;
+        hililloP = 0;
     }
 
-    void cargarHilillo(){}
-    void fetch(){}
+    void cargarHilillo(Contexto c, int pos){
+        if(pos==1) registrosHilo1= c.registros;
+        else registrosHilo0= c.registros;
+        pc[pos] = c.pc;
+        idHilillo[pos] = c.id;
+    }
+    Contexto guardarHilillo(int pos){
+        Contexto c;
+        if(pos==1) c = new Contexto(registrosHilo1, pc[pos], idHilillo[pos]);
+        else c = new Contexto(registrosHilo0, pc[pos], idHilillo[pos]);
+        return c;
+    }
+    int[] fetch(int hillillo){// retorna int[] de 4
+        int[] aux = new int[4];
+
+        return aux;
+    }
     void ejecutarI(String instruccion){
 
         switch(2){}
@@ -68,7 +86,14 @@ public class Nucleo implements Runnable {
     }
 
 
-    public void leerArchivo() {
+
+
+
+
+
+
+
+    public void leerArchivo() {//???????? khe
 
         String file = "RUTA DEL ARCHIVO";
         BufferedReader br = null;
