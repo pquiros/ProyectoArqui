@@ -22,9 +22,11 @@ public class Cache {
 
             case 'i': // cache de instrucciones
                 tamano = 16;
+                //codigo repetido ;(
                 estados = new char[bloque];
                 etiquetas = new int[bloque];
                 memoria = new int[bloque][tamano];
+                break;
         }
         for(int i=0; i<estados.length; i++){
             estados[i]='i'; etiquetas[i]=-1;

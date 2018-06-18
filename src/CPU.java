@@ -3,8 +3,10 @@ package src;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import  java.util.LinkedList;
 import java.util.Scanner;
+import java.util.StringTokenizer;
 
 public class CPU {
     //COLA de contextos
@@ -42,20 +44,35 @@ public class CPU {
         }
     }
 
-    public void start(int qntm) {
-
+    private void start(int qntm) {
         quatum = qntm;
         int nHilillos = 5;
+        int pcAux=0;
         for(int i=0; i<=nHilillos; i++){
+            int p = pcAux;
+            String line;
             try {
                 BufferedReader in = new BufferedReader(new FileReader(i+".txt"));
-                hilillos.add(in);
+                while (((line = in.readLine()) != null)){
+                    StringTokenizer st = new StringTokenizer(line);
+                    while (st.hasMoreTokens()) {
+                        RAMI[pcAux++] = Integer.parseInt(st.nextToken());
+                    }
+                }
+                Contexto contexto= new Contexto(p,i);
+                //System.out.println(p);
+                contextos.add(contexto);
             } catch (FileNotFoundException e) {
                 System.out.println("Error al leer el archivo "+i);
                 e.printStackTrace();
+            } catch (IOException e) {
+                System.out.println("Error en el buffer.");
+                e.printStackTrace();
             }
         }
-
+        /*for(int kk: RAMI){
+            System.out.print(kk);
+        }*/
     }
 
     public static void main(String[] args){
