@@ -21,9 +21,10 @@ public class Nucleo implements Runnable {
 
     HijoSuicida hijoSuicida;
 
-    public Nucleo(int tipo, Cache cD,Cache  cI) {
+    public Nucleo(int tipo, Cache cD,Cache  cI, CPU c) {
         cacheD= cD;
         cacheI= cI;
+        cpu = c;
         registrosHilo0 = new int[32];
 
         if (tipo == 0) {

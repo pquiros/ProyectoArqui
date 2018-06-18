@@ -5,26 +5,29 @@ public class Cache {
     public CPU cpu;
     char estados[];
     int etiquetas[];
-    int memoria[];
+    int memoria[][];
 
-    public Cache(char tipo) {
+    public Cache(char tipo, int bloque) {
 
-        cpu = new CPU();
-        int tamano = 0;
+        //cpu = new CPU();
+        int tamano = 0;// tama;o de bloque
 
         switch (tipo) {
             case 'd': // cache de datos
-                tamano = 16;
-                estados = new char[tamano];
-                etiquetas = new int[tamano];
-                memoria = new int[tamano];
+                tamano = 4;
+                estados = new char[bloque];
+                etiquetas = new int[bloque];
+                memoria = new int[bloque][tamano];
                 break;
 
             case 'i': // cache de instrucciones
-                tamano = 32;
-                estados = new char[tamano];
-                etiquetas = new int[tamano];
-                memoria = new int[tamano];
+                tamano = 16;
+                estados = new char[bloque];
+                etiquetas = new int[bloque];
+                memoria = new int[bloque][tamano];
+        }
+        for(int i=0; i<estados.length; i++){
+            estados[i]='i'; etiquetas[i]=-1;
         }
     }
 
