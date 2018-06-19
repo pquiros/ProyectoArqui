@@ -46,10 +46,10 @@ public class CPU {
         RAMD= new int[96];
         RAMI= new int[640];
         for(int i=0; i<RAMD.length; i++){
-            RAMD[i]=1;
+            RAMD[i]=i;
         }
         for(int i=0; i<RAMI.length; i++){
-            RAMI[i]=1;
+            RAMI[i]=i;
         }
     }
 
@@ -86,7 +86,9 @@ public class CPU {
         n1.cargarHilillo(contextos.removeFirst(), 0);
 
         // D: 96 | I: 640
-        cacheD0.LoadCheck(45);
+        cacheD0.loadCheck(45);
+        cacheD0.loadCheck(34);
+        cacheD0.loadCheck(46);
     }
 
     public static void main(String[] args){

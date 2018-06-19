@@ -51,7 +51,6 @@ public class Cache {
         boolean otherLockAct = false;
         int blocks = direction / blockSize;
         int position = blocks % blockCount;
-        int block[] = new int[blockSize];
 
         try{
             if(tipo == 'D'){
@@ -83,23 +82,23 @@ public class Cache {
                             // Toma la posicion de cache y lo copia en ambos, memoria y este cache, y ambos en estado C
                             othercache.StoreToMemory(direction);
                         }else{// NO
-                            // Carga el bloque a memoria principal.
+                            // Carga el bloque desde memoria principal.
+
+                            for (int i = 0; i < 4; i++) {
+                                if (tipo == 'D') {
+                                    memoria[(position * blockSize) + i] = cpu.RAMD[(blocks * blockSize) + i];
+                                } else if (tipo == 'I') {
+                                    memoria[(position * blockSize) + i] = cpu.RAMI[(blocks * blockSize) + i];
+                                }
+                            }
+                            etiquetas[position] = blocks;
+                            estados[position] = 'C';
                         }
                     }
 
                 }finally{
                     if(this.lock.isHeldByCurrentThread())
                         this.lock.unlock();
-                }
-
-                // Extract from CPU
-                for (int i = 0; i < 4; i++) {
-                    if (tipo == 'D') {
-                        memoria[(position * blockSize) + i] = cpu.RAMD[position + i];
-                    } else if (tipo == 'I') {
-                        memoria[(position * blockSize) + i] = cpu.RAMI[position + i];
-                    }
-                    block[i] = memoria[(direction - (direction % blockSize)) + i];
                 }
             }
         }finally{
@@ -109,7 +108,7 @@ public class Cache {
         return 0;
     }
 
-    public int LoadCheck(int direction) {
+    public int loadCheck(int direction) {
         int answer = 0;
         boolean lockAct = false;
         int blocks = direction / blockSize;
@@ -126,12 +125,12 @@ public class Cache {
                 }
                 else{
                     if (checkCacheState(direction) == true && checkCacheIdentity(position) == blocks) {
-                        success = 1;
+                        success = 0;
                     }else{
                         success = loadFromMemory(direction);
                     }
 
-                    if(success == 1){
+                    if(success == 0){
                         answer = memoria[(position*blockSize) + wordp];
                     }
                 }
