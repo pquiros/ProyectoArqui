@@ -59,13 +59,114 @@ public class Nucleo implements Runnable {
 
         return aux;
     }
-    void ejecutarI(String instruccion){
+    void ejecutarI(int[] instruccion, int iD) {
 
-        switch(2){}
+        switch (instruccion[0]) {
+            //DADDI
+            case 8:
+                if (iD == 0) {
+                    registrosHilo0[instruccion[2]] = registrosHilo0[instruccion[1]] + instruccion[3];
+                } else {
+                    registrosHilo1[instruccion[2]] = registrosHilo1[instruccion[1]] + instruccion[3];
+                }
+                break;
+            //DADD
+            case 32:
+                if (iD == 0) {
+                    registrosHilo0[instruccion[3]] = registrosHilo0[instruccion[1]] + registrosHilo0[instruccion[2]];
+                } else {
+                    registrosHilo1[instruccion[3]] = registrosHilo1[instruccion[1]] + registrosHilo1[instruccion[2]];
+                }
+                break;
+            //DSUB
+            case 34:
+                if (iD == 0) {
+                    registrosHilo0[instruccion[3]] = registrosHilo0[instruccion[1]] - registrosHilo0[instruccion[2]];
+                } else {
+                    registrosHilo1[instruccion[3]] = registrosHilo1[instruccion[1]] - registrosHilo1[instruccion[2]];
+                }
+                break;
+            //DMUL
+            case 12:
+                if (iD == 0) {
+                    registrosHilo0[instruccion[3]] = registrosHilo0[instruccion[1]] * registrosHilo0[instruccion[2]];
+                } else {
+                    registrosHilo1[instruccion[3]] = registrosHilo1[instruccion[1]] * registrosHilo1[instruccion[2]];
+                }
+                break;
+            //DDIV
+            case 14:
+                if (iD == 0) {
+                    registrosHilo0[instruccion[3]] = registrosHilo0[instruccion[1]] / registrosHilo0[instruccion[2]];
+                } else {
+                    registrosHilo1[instruccion[3]] = registrosHilo1[instruccion[1]] / registrosHilo1[instruccion[2]];
+                }
+                break;
+            //BEQZ
+            case 4:
+                if (iD == 0) {
+                    if (instruccion[1] == 0) {
+                        pc[0] += 4 * instruccion[3];
+                    }
+                } else {
+                    if (instruccion[1] == 0) {
+                        pc[1] += 4 * instruccion[3];
+                    }
+                }
+                break;
+            //BNEZ
+            case 5:
+                if (iD != 0) {
+                    if (instruccion[1] != 0) {
+                        pc[0] += 4 * instruccion[3];
+                    }
+                } else {
+                    if (instruccion[1] != 0) {
+                        pc[1] += 4 * instruccion[3];
+                    }
+                }
+                break;
+            //JAL
+            case 3:
+                if (iD != 0) {
+                    registrosHilo0[31] = instruccion[3];
+                    pc[0] += instruccion[3];
+                } else {
+                    registrosHilo1[31] = instruccion[3];
+                    pc[1] += instruccion[3];
+                }
+                break;
+            //JR
+            case 2:
+                if (iD != 0) {
+                    pc[0] += registrosHilo0[instruccion[1]];
+                } else {
+                    pc[1] += registrosHilo1[instruccion[1]];
+                }
+                break;
+            //LW
+            case 35:
+
+                break;
+            //SW
+            case 43:
+
+                break;
+            //FIN
+            case 63:
+
+                break;
+        }
     }
-    int convertDirBloque(int dir){return 0;}
-    void LW(){}
-    void SW(){}
+
+    int convertDirBloque(int dir){
+        return dir / 4;
+    }
+
+    public void LW(){}
+
+    public void SW(){}
+
     void falloDeCache(){
         if(id==0){
             hijoSuicida = new HijoSuicida();
@@ -73,6 +174,7 @@ public class Nucleo implements Runnable {
             hilo.start();
         }
     }
+
 
     public void run(){
 
@@ -85,46 +187,4 @@ public class Nucleo implements Runnable {
         }
     }
 
-
-
-
-
-
-
-
-
-    public void leerArchivo() {//???????? khe
-
-        String file = "RUTA DEL ARCHIVO";
-        BufferedReader br = null;
-        String line = "";
-        String separador = " ";
-
-        try {
-
-            br = new BufferedReader(new FileReader(file));
-            while ((line = br.readLine()) != null) {
-
-                // use comma as separator
-                String[] linea = line.split(separador);
-
-                System.out.println("Codigo Operacion : " + linea[0] + " , registroD=" + linea[1] + " , registrof=" + linea[2] + " , inmediato=" + linea[3]);
-
-            }
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-    }
 }
