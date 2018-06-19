@@ -2,14 +2,17 @@ package src;
 
 public class Cache {
 
-    public CPU cpu;
-    char estados[];
-    int etiquetas[];
-    int memoria[][];
+    private CPU cpu;
+    private Cache othercache;
+    private char estados[];
+    private int etiquetas[];
+    private int memoria[];
+    private int tipo;
 
-    public Cache(char tipo, int bloque) {
+    public Cache(char tippo, int bloque, CPU cepeu) {
 
-        //cpu = new CPU();
+        tipo = tippo;
+        cpu = cepeu;
         int tamano = 0;// tama;o de bloque
 
         switch (tipo) {
@@ -17,7 +20,7 @@ public class Cache {
                 tamano = 4;
                 estados = new char[bloque];
                 etiquetas = new int[bloque];
-                memoria = new int[bloque][tamano];
+                memoria = new int[bloque*tamano];
                 break;
 
             case 'i': // cache de instrucciones
@@ -25,7 +28,7 @@ public class Cache {
                 //codigo repetido ;(
                 estados = new char[bloque];
                 etiquetas = new int[bloque];
-                memoria = new int[bloque][tamano];
+                memoria = new int[bloque*tamano];
                 break;
         }
         for(int i=0; i<estados.length; i++){
@@ -33,8 +36,25 @@ public class Cache {
         }
     }
 
-    public void insertFromMemory() {
+    public void linkcache(Cache other){
+        this.othercache = other;
+    }
 
+    public int insertFromMemory(int directon) {
+        boolean lockAct = false;
+        try{
+            lockAct = cpu.lockD.tryLock();
+            if(!lockAct)
+                return -1;
+            // Extract from CPU
+            for(int i = 0; i < 4; i++){
+
+            }
+        }finally{
+            if(cpu.lockD.isHeldByCurrentThread())
+                cpu.lockD.unlock();
+        }
+        return 0;
     }
 
     public boolean checkCache(int bloque) {
