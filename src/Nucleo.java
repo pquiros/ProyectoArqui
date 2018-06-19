@@ -48,17 +48,20 @@ public class Nucleo implements Runnable {
         pc[pos] = c.pc;
         idHilillo[pos] = c.id;
     }
+
     Contexto guardarHilillo(int pos){
         Contexto c;
         if(pos==1) c = new Contexto(registrosHilo1, pc[pos], idHilillo[pos]);
         else c = new Contexto(registrosHilo0, pc[pos], idHilillo[pos]);
         return c;
     }
+
     int[] fetch(int hillillo){// retorna int[] de 4
         int[] aux = new int[4];
 
         return aux;
     }
+
     void ejecutarI(int[] instruccion, int iD) {
 
         switch (instruccion[0]) {
@@ -159,9 +162,13 @@ public class Nucleo implements Runnable {
         }
     }
 
-    int convertDirBloque(int dir){
+    /*int convertDirBloque(int dir){
         return dir / 4;
     }
+
+    int convertirBloqueACache(int bloque, int palabra) {
+
+    }*/
 
     public void LW(){}
 
@@ -173,17 +180,18 @@ public class Nucleo implements Runnable {
             Thread hilo= new Thread(hijoSuicida);
             hilo.start();
         }
+        // hilo se debe matar con hilo.join() en cuanto el padre resuelva el fallo de cache
     }
 
 
     public void run(){
 
     }
+
     private class HijoSuicida implements Runnable{
         public HijoSuicida(){}
         @Override
         public void run() {
-
         }
     }
 
