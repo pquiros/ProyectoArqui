@@ -32,10 +32,10 @@ public class CPU {
         quatum = 0;
         contextos = new LinkedList<>();
         hilillos = new LinkedList<>();
-        cacheD0 = new Cache('d', 8, this);
-        cacheD1 = new Cache('d', 4, this);
-        cacheI0 = new Cache('i', 8, this);
-        cacheI1 = new Cache('i', 4, this);
+        cacheD0 = new Cache('D', 8, this);
+        cacheD1 = new Cache('D', 4, this);
+        cacheI0 = new Cache('I', 8, this);
+        cacheI1 = new Cache('I', 4, this);
         cacheD0.linkcache(cacheD1);
         cacheD1.linkcache(cacheD0);
         cacheI0.linkcache(cacheI1);
@@ -84,6 +84,9 @@ public class CPU {
         }
         n0.cargarHilillo(contextos.removeFirst(), 0);
         n1.cargarHilillo(contextos.removeFirst(), 0);
+
+        // D: 96 | I: 640
+        cacheD0.LoadCheck(45);
     }
 
     public static void main(String[] args){
