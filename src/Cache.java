@@ -124,7 +124,7 @@ public class Cache {
                     success = -1;
                 }
                 else{
-                    if (checkCacheState(direction) == true && checkCacheIdentity(position) == blocks) {
+                    if (checkCacheState(direction) == true && checkCacheIdentity(direction) == blocks) {
                         success = 0;
                     }else{
                         success = loadFromMemory(direction);
