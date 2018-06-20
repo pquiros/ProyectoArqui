@@ -84,6 +84,7 @@ public class CPU {
         }
         n0.cargarHilillo(contextos.removeFirst(), 0);
         n1.cargarHilillo(contextos.removeFirst(), 0);
+        n0.cargarHilillo(contextos.removeFirst(), 1);
 
         // D: 96 | I: 640
         cacheD0.loadCheck(45);

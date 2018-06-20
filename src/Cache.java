@@ -214,4 +214,18 @@ public class Cache {
 
         return 0;
     }
+
+
+    //necesito este metodo retorno la instrucion
+    // solo se llama si la instrución está
+    int[] retornaIns(int nInstrucion){
+        int[] i = new int[4];
+
+        return i;
+    }
+
+    // retorna si la instruccion está en cache
+    public boolean isInCaheI(int nInstrucion) {
+        return false;
+    }
 }
