@@ -12,6 +12,7 @@ public class Cache {
     private int tipo;
     private final int blockSize = 4;
     private int blockCount;
+    private int size;
     public static ReentrantLock lock = new ReentrantLock();
 
     public Cache(char tippo, int bloque, CPU cepeu) {
@@ -37,6 +38,7 @@ public class Cache {
                 memoria = new int[bloque*tamano];
                 break;
         }
+        size = tamano;
         for(int i=0; i<estados.length; i++){
             estados[i]='I'; etiquetas[i]=-1;
         }
@@ -216,7 +218,7 @@ public class Cache {
     }
 
 
-    //necesito este metodo retorno la instrucion
+    //necesito este metodo retorno lar instrucion
     // solo se llama si la instrución está
     int[] retornaIns(int nInstrucion){
         int[] i = new int[4];
@@ -225,7 +227,7 @@ public class Cache {
     }
 
     // retorna si la instruccion está en cache
-    public boolean isInCaheI(int nInstrucion) {
-        return false;
+    public boolean isInCahe(int bloque) {
+        return etiquetas[bloque%size]== bloque;
     }
 }
