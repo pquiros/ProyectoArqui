@@ -1,11 +1,6 @@
 package src;
 
 import java.lang.Thread;
-
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.lang.Runnable;
 
 public class Nucleo implements Runnable {
@@ -14,6 +9,7 @@ public class Nucleo implements Runnable {
     int registrosHilo0[];
     int registrosHilo1[];
     int pc[];
+    int quantum[];
     int idHilillo[];// nombre del hilillo
     int id;
     int hililloP;// hilillo principal
@@ -31,10 +27,12 @@ public class Nucleo implements Runnable {
         if (tipo == 0) {
             registrosHilo1 = new int[32];
             pc = new int[2];
+            quantum = new int[2];
             idHilillo = new int[2];
             hijoSuicida = new HijoSuicida();
         }else {
             pc = new int[1];
+            quantum = new int[1];
             idHilillo = new int[1];
         }
 
@@ -47,6 +45,7 @@ public class Nucleo implements Runnable {
         else registrosHilo0= c.registros;
         pc[pos] = c.pc;
         idHilillo[pos] = c.id;
+        quantum[pos] = cpu.quatum;
     }
 
     Contexto guardarHilillo(int pos){
@@ -58,7 +57,10 @@ public class Nucleo implements Runnable {
 
     int[] fetch(int hillillo){// retorna int[] de 4
         int[] aux = new int[4];
-
+        if (!cacheI.isInCaheI(pc[hillillo])) {
+            falloDeCache(cacheI);
+        }
+        aux = cacheI.retornaIns(pc[hillillo]);
         return aux;
     }
 
@@ -162,11 +164,12 @@ public class Nucleo implements Runnable {
         }
     }
 
-    /*int convertDirBloque(int dir){
-        return dir / 4;
+    int convertDirBloque(int dir){
+        if(id == 1)return dir / 4;
+        else return dir/8;
     }
 
-    int convertirBloqueACache(int bloque, int palabra) {
+    /*int convertirBloqueACache(int bloque, int palabra) {
 
     }*/
 
@@ -174,18 +177,27 @@ public class Nucleo implements Runnable {
 
     public void SW(){}
 
-    void falloDeCache(){
+    void falloDeCache(Cache c){
         if(id==0){
-            hijoSuicida = new HijoSuicida();
+            /*hijoSuicida = new HijoSuicida();
             Thread hilo= new Thread(hijoSuicida);
-            hilo.start();
+            hilo.start();*/
         }
-        // hilo se debe matar con hilo.join() en cuanto el padre resuelva el fallo de cache
+        // hilo se debe matar con hilo.join() en cuanto el padre resuelva el fallo de cache?
+        //R: no.
     }
 
 
     public void run(){
-
+        while(!cpu.contextos.isEmpty()){
+            while (quantum[hililloP]!= 0){
+                ejecutarI(fetch(hililloP), hililloP);
+                quantum[hililloP]--;
+            }
+            guardarHilillo(hililloP);
+            cargarHilillo(cpu.contextos.removeFirst(), hililloP);
+            hililloP++; hililloP%=2;
+        }
     }
 
     private class HijoSuicida implements Runnable{
