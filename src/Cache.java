@@ -66,7 +66,7 @@ public class Cache {
             }else {
                 if(estados[position] == 'M'){ // Si esta en M quiere decir que es un bloque victima
                     // Reloj + 39
-                    StoreToMemory(direction); // Copia ese bloque a memoria y lo invalida en cache.
+                    storeToMemory(direction); // Copia ese bloque a memoria y lo invalida en cache.
 
                     // Reloj + 1
                 }
@@ -82,25 +82,25 @@ public class Cache {
                     else{ // SI
                         if (othercache.checkCacheModified(direction) == true && othercache.checkCacheIdentity(position) == blocks) { // Esta el bloque modificado?
                             // Toma la posicion de cache y lo copia en ambos, memoria y este cache, y ambos en estado C
-                            othercache.StoreToMemory(direction);
-                        }else{// NO
-                            // Carga el bloque desde memoria principal.
-
-                            for (int i = 0; i < 4; i++) {
-                                if (tipo == 'D') {
-                                    memoria[(position * blockSize) + i] = cpu.RAMD[(blocks * blockSize) + i];
-                                } else if (tipo == 'I') {
-                                    memoria[(position * blockSize) + i] = cpu.RAMI[(blocks * blockSize) + i];
-                                }
-                            }
-                            etiquetas[position] = blocks;
-                            estados[position] = 'C';
+                            othercache.storeToMemory(direction);
                         }
+
+                        // Carga el bloque desde memoria principal.
+
+                        for (int i = 0; i < 4; i++) {
+                            if (tipo == 'D') {
+                                memoria[(position * blockSize) + i] = cpu.RAMD[(blocks * blockSize) + i];
+                            } else if (tipo == 'I') {
+                                memoria[(position * blockSize) + i] = cpu.RAMI[(blocks * blockSize) + i];
+                            }
+                        }
+                        etiquetas[position] = blocks;
+                        estados[position] = 'C';
                     }
 
                 }finally{
-                    if(this.lock.isHeldByCurrentThread())
-                        this.lock.unlock();
+                    if(othercache.lock.isHeldByCurrentThread())
+                        othercache.lock.unlock();
                 }
             }
         }finally{
@@ -126,7 +126,7 @@ public class Cache {
                     success = -1;
                 }
                 else{
-                    if (checkCacheState(direction) == true && checkCacheIdentity(position) == blocks) {
+                    if (checkCacheState(direction) == true && checkCacheIdentity(direction) == blocks) {
                         success = 0;
                     }else{
                         success = loadFromMemory(direction);
@@ -184,7 +184,70 @@ public class Cache {
         return memoria[finalep];
     }
 
-    public int StoreToMemory(int directon) {
+    public int storeCheck(int direction, int data) {
+        boolean lockAct = false;
+        boolean otherLockAct = false;
+        int blocks = direction / blockSize;
+        int wordp = direction % blockSize;
+        int position = blocks % blockCount;
+        int success = -1;
+
+        while(success == -1) {
+            try{
+                lockAct = this.lock.tryLock();
+
+                if(!lockAct){
+                    success = -1;
+                }
+                else{
+                    if (checkCacheState(direction) == true && checkCacheIdentity(direction) == blocks) {
+                        memoria[(position*blockSize) + wordp] = data;
+                    }else{
+                        try{
+                            otherLockAct = othercache.lock.tryLock(); // La posicion esta disponible en la otra cache?
+
+                            if(!otherLockAct){ // NO
+                                // Pues nada, libera el bus en finally.
+                            }
+                            else{ // SI
+                                success = othercache.invalidate(direction);
+                            }
+                        }finally{
+                            if(othercache.lock.isHeldByCurrentThread())
+                                othercache.lock.unlock();
+                        }
+                    }
+
+                    if(success == 0){
+                        loadFromMemory(direction);
+                        memoria[(position * blockSize) + wordp] = data;
+                        estados[position] = 'M';
+                    }
+                }
+            }finally {
+                if(this.lock.isHeldByCurrentThread())
+                    this.lock.unlock();
+            }
+        }
+
+        return success;
+    }
+
+    public int invalidate(int direction){
+        int result = -1;
+        int blocks = direction / blockSize;
+        int position = blocks % blockCount;
+        if((estados[position] == 'C') && etiquetas[position] == blocks){
+            estados[position] = 'I';
+            result = 0;
+        }else if((estados[position] == 'M') && etiquetas[position] == blocks){
+            result = storeToMemory(direction);
+        }
+
+        return result;
+    }
+
+    public int storeToMemory(int directon) {
         boolean lockAct = false;
         int blocks = directon / blockSize;
         int position = blocks % blockCount;

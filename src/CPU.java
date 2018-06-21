@@ -87,9 +87,11 @@ public class CPU {
         n0.cargarHilillo(contextos.removeFirst(), 1);
 
         // D: 96 | I: 640
-        cacheD0.loadCheck(45);
-        cacheD0.loadCheck(34);
-        cacheD0.loadCheck(46);
+        int uno = cacheD0.loadCheck(45);
+        int dos = cacheD0.loadCheck(34);
+        int tri = cacheD0.loadCheck(46);
+        int fur = cacheD1.loadCheck(44);
+        int fiv = cacheD0.storeCheck(44, 99);
     }
 
     public static void main(String[] args){
