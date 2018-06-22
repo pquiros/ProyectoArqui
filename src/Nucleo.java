@@ -2,6 +2,8 @@ package src;
 
 import java.lang.Thread;
 import java.lang.Runnable;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 
 public class Nucleo implements Runnable {
 
@@ -15,13 +17,16 @@ public class Nucleo implements Runnable {
     int hililloP;// hilillo principal
     Cache cacheI;
     Cache cacheD;
+    CyclicBarrier cyclicBarrier;
 
     HijoSuicida hijoSuicida;
 
-    public Nucleo(int tipo, Cache cD,Cache  cI, CPU c) {
+    public Nucleo(int tipo, Cache cD,Cache  cI, CPU c, CyclicBarrier cb) {
         cacheD= cD;
         cacheI= cI;
         cpu = c;
+        cyclicBarrier = cb;
+
         registrosHilo0 = new int[32];
 
         if (tipo == 0) {
@@ -57,7 +62,7 @@ public class Nucleo implements Runnable {
 
     int[] fetch(int hillillo){// retorna int[] de 4
         int[] aux = new int[4];
-        if (!cacheI.isInCaheI(pc[hillillo])) {
+        if (!cacheI.isInCache(pc[hillillo])) {
             falloDeCache(cacheI);
         }
         aux = cacheI.retornaIns(pc[hillillo]);
@@ -193,6 +198,13 @@ public class Nucleo implements Runnable {
             while (quantum[hililloP]!= 0){
                 ejecutarI(fetch(hililloP), hililloP);
                 quantum[hililloP]--;
+                try {
+                    cyclicBarrier.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (BrokenBarrierException e) {
+                    e.printStackTrace();
+                }
             }
             guardarHilillo(hililloP);
             cargarHilillo(cpu.contextos.removeFirst(), hililloP);

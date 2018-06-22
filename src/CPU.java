@@ -7,8 +7,10 @@ import java.io.IOException;
 import  java.util.LinkedList;
 import java.util.Scanner;
 import java.util.StringTokenizer;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.CyclicBarrier;
 
 public class CPU {
     //COLA de contextos
@@ -25,6 +27,12 @@ public class CPU {
     public static ReentrantLock lockD = new ReentrantLock();
     public static ReentrantLock lockI = new ReentrantLock();
 
+
+    private CyclicBarrier cyclicBarrier;
+    private int hilos;
+
+
+
     Nucleo n0;
     Nucleo n1;
 
@@ -40,8 +48,11 @@ public class CPU {
         cacheD1.linkcache(cacheD0);
         cacheI0.linkcache(cacheI1);
         cacheI1.linkcache(cacheI0);
-        n0= new Nucleo(0, cacheD0, cacheI0, this);
-        n1= new Nucleo(1, cacheD1, cacheI1, this);
+
+        cyclicBarrier = new CyclicBarrier(3);
+
+        n0= new Nucleo(0, cacheD0, cacheI0, this, cyclicBarrier);
+        n1= new Nucleo(1, cacheD1, cacheI1, this, cyclicBarrier);
 
         RAMD= new int[96];
         RAMI= new int[640];
@@ -117,6 +128,21 @@ public class CPU {
             catch (NumberFormatException e){
                 System.out.println(mens2);
             }
+        }
+    }
+
+
+//Ejecuta la barrera de espera para el cpu
+    public void ejecutar() {
+        try {
+
+
+            cyclicBarrier.await();// Esta es la barrera que espera a todos los hilos
+
+        } catch (InterruptedException ie) {
+            //ie.printStackTrace();
+        } catch (BrokenBarrierException be) {
+            //be.printStackTrace();
         }
     }
 }

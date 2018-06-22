@@ -290,7 +290,7 @@ public class Cache {
     }
 
     // retorna si la instruccion está en cache
-    public boolean isInCahe(int bloque) {
+    public boolean isInCache(int bloque) {
         return etiquetas[bloque%size]== bloque;
     }
 }
