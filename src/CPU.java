@@ -98,11 +98,10 @@ public class CPU {
         n0.cargarHilillo(contextos.removeFirst(), 1);
 
         // D: 96 | I: 640
-        int uno = cacheD0.loadCheck(45);
-        int dos = cacheD0.loadCheck(34);
-        int tri = cacheD0.loadCheck(46);
-        int fur = cacheD1.loadCheck(44);
-        int fiv = cacheD0.storeCheck(44, 99);
+
+        cacheD0.storeCheck(45, 97);
+        cacheD1.storeCheck(46,32);
+        cacheD0.storeCheck(31,64);
     }
 
     public static void main(String[] args){

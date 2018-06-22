@@ -10,7 +10,6 @@ public class Cache {
     private int etiquetas[];
     private int memoria[];
     private int tipo;
-    private final int blockSize = 4;
     private int blockCount;
     private int size;
     public static ReentrantLock lock = new ReentrantLock();
@@ -51,7 +50,7 @@ public class Cache {
     public int loadFromMemory(int direction){
         boolean lockAct = false;
         boolean otherLockAct = false;
-        int blocks = direction / blockSize;
+        int blocks = direction / size;
         int position = blocks % blockCount;
 
         try{
@@ -89,13 +88,14 @@ public class Cache {
 
                         for (int i = 0; i < 4; i++) {
                             if (tipo == 'D') {
-                                memoria[(position * blockSize) + i] = cpu.RAMD[(blocks * blockSize) + i];
+                                memoria[(position * size) + i] = cpu.RAMD[(blocks * size) + i];
                             } else if (tipo == 'I') {
-                                memoria[(position * blockSize) + i] = cpu.RAMI[(blocks * blockSize) + i];
+                                memoria[(position * size) + i] = cpu.RAMI[(blocks * size) + i];
                             }
                         }
                         etiquetas[position] = blocks;
                         estados[position] = 'C';
+                        // Reloj +39
                     }
 
                 }finally{
@@ -110,46 +110,11 @@ public class Cache {
         return 0;
     }
 
-    public int loadCheck(int direction) {
-        int answer = 0;
-        boolean lockAct = false;
-        int blocks = direction / blockSize;
-        int wordp = direction % blockSize;
-        int position = blocks % blockCount;
-        int success = -1;
-
-        while(success == -1) {
-            try{
-                lockAct = this.lock.tryLock();
-
-                if(!lockAct){
-                    success = -1;
-                }
-                else{
-                    if (checkCacheState(direction) == true && checkCacheIdentity(direction) == blocks) {
-                        success = 0;
-                    }else{
-                        success = loadFromMemory(direction);
-                    }
-
-                    if(success == 0){
-                        answer = memoria[(position*blockSize) + wordp];
-                    }
-                }
-            }finally {
-                if(this.lock.isHeldByCurrentThread())
-                    this.lock.unlock();
-            }
-        }
-
-        return answer;
-    }
-
     // True si es M o C
 
     public boolean checkCacheState(int direction) {
         boolean present = false;
-        int blocks = direction / blockSize;
+        int blocks = direction / size;
         int position = blocks % blockCount;
         if((estados[position] == 'M' || estados[position] == 'C') && etiquetas[position] == blocks){
             present = true;
@@ -161,7 +126,7 @@ public class Cache {
 
     public boolean checkCacheModified(int direction) {
         boolean present = false;
-        int blocks = direction / blockSize;
+        int blocks = direction / size;
         int position = blocks % blockCount;
         if((estados[position] == 'M') && etiquetas[position] == blocks){
             present = true;
@@ -171,15 +136,15 @@ public class Cache {
 
     public int checkCacheIdentity(int direction) {
         int present = 0;
-        int blocks = direction / blockSize;
+        int blocks = direction / size;
         int position = blocks % blockCount;
         present = etiquetas[position];
         return present;
     }
 
     public int getFromCache(int direction) {
-        int blocks = direction / blockSize;
-        int position = direction % blockSize;
+        int blocks = direction / size;
+        int position = direction % size;
         int finalep = blocks + position;
         return memoria[finalep];
     }
@@ -187,8 +152,8 @@ public class Cache {
     public int storeCheck(int direction, int data) {
         boolean lockAct = false;
         boolean otherLockAct = false;
-        int blocks = direction / blockSize;
-        int wordp = direction % blockSize;
+        int blocks = direction / size;
+        int wordp = direction % size;
         int position = blocks % blockCount;
         int success = -1;
 
@@ -201,7 +166,7 @@ public class Cache {
                 }
                 else{
                     if (checkCacheState(direction) == true && checkCacheIdentity(direction) == blocks) {
-                        memoria[(position*blockSize) + wordp] = data;
+                        memoria[(position*size) + wordp] = data;
                     }else{
                         try{
                             otherLockAct = othercache.lock.tryLock(); // La posicion esta disponible en la otra cache?
@@ -219,8 +184,9 @@ public class Cache {
                     }
 
                     if(success == 0){
+                        othercache.estados[position] = 'I';
                         loadFromMemory(direction);
-                        memoria[(position * blockSize) + wordp] = data;
+                        memoria[(position * size) + wordp] = data;
                         estados[position] = 'M';
                     }
                 }
@@ -235,13 +201,24 @@ public class Cache {
 
     public int invalidate(int direction){
         int result = -1;
-        int blocks = direction / blockSize;
+        int blocks = direction / size;
         int position = blocks % blockCount;
+        boolean lockAct = false;
         if((estados[position] == 'C') && etiquetas[position] == blocks){
             estados[position] = 'I';
             result = 0;
         }else if((estados[position] == 'M') && etiquetas[position] == blocks){
-            result = storeToMemory(direction);
+            try{
+                if(tipo == 'D'){
+                    lockAct = cpu.lockD.tryLock();
+                }else if(tipo == 'I'){
+                    lockAct = cpu.lockI.tryLock();
+                }
+                result = storeToMemory(direction);
+            }finally{
+                if(othercache.lock.isHeldByCurrentThread())
+                    othercache.lock.unlock();
+            }
         }
 
         return result;
@@ -249,9 +226,9 @@ public class Cache {
 
     public int storeToMemory(int directon) {
         boolean lockAct = false;
-        int blocks = directon / blockSize;
+        int blocks = directon / size;
         int position = blocks % blockCount;
-        int block[] = new int[blockSize];
+        int block[] = new int[size];
 
         if(this.tipo == 'D'){
             lockAct = cpu.lockD.isHeldByCurrentThread();
@@ -265,9 +242,9 @@ public class Cache {
             }else{
                 for (int i = 0; i < 4; i++) {
                     if (tipo == 'D') {
-                        cpu.RAMD[(blocks * blockSize) + i] = memoria[(position * blockSize) + i];
+                        cpu.RAMD[(blocks * size) + i] = memoria[(position * size) + i];
                     } else if (tipo == 'I') {
-                        cpu.RAMI[(blocks * blockSize) + i] = memoria[(position * blockSize) + i];
+                        cpu.RAMI[(blocks * size) + i] = memoria[(position * size) + i];
                     }
                 }
                 estados[blocks] = 'C'; // Se ha compartido el bloque.
@@ -280,6 +257,17 @@ public class Cache {
         return 0;
     }
 
+    public int getBlockSize(){
+        return size;
+    }
+
+    public int getMemoryData(int position){
+        return memoria[position];
+    }
+
+    public int getBlockAmount(){
+        return blockCount;
+    }
 
     //necesito este metodo retorno lar instrucion
     // solo se llama si la instrución está

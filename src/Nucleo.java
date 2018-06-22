@@ -178,7 +178,39 @@ public class Nucleo implements Runnable {
 
     }*/
 
-    public void LW(){}
+    public int LW(int direction){
+        int answer = 0;
+        boolean lockAct = false;
+        int blocks = direction / cacheD.getBlockSize();
+        int wordp = direction % cacheD.getBlockSize();
+        int position = blocks % cacheD.getBlockAmount();
+        int success = -1;
+
+        while(success == -1) {
+            try{
+                lockAct = cacheD.lock.tryLock();
+
+                if(!lockAct){
+                    success = -1;
+                }
+                else{
+                    if (cacheD.checkCacheState(direction) == true && cacheD.checkCacheIdentity(direction) == blocks) {
+                        success = 0;
+                    }else{
+                        success = cacheD.loadFromMemory(direction);
+                    }
+
+                    if(success == 0){
+                        answer = cacheD.getMemoryData((position*cacheD.getBlockSize()) + wordp);
+                    }
+                }
+            }finally {
+                if(cacheD.lock.isHeldByCurrentThread())
+                    cacheD.lock.unlock();
+            }
+        }
+
+        return answer;}
 
     public void SW(){}
 
