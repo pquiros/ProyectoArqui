@@ -184,7 +184,8 @@ public class Cache {
                     }
 
                     if(success == 0){
-                        othercache.estados[position] = 'I';
+                        int otherPosition = blocks % othercache.getBlockAmount();
+                        othercache.estados[otherPosition] = 'I';
                         loadFromMemory(direction);
                         memoria[(position * size) + wordp] = data;
                         estados[position] = 'M';
@@ -200,7 +201,7 @@ public class Cache {
     }
 
     public int invalidate(int direction){
-        int result = -1;
+        int result = 0;
         int blocks = direction / size;
         int position = blocks % blockCount;
         boolean lockAct = false;
@@ -208,6 +209,7 @@ public class Cache {
             estados[position] = 'I';
             result = 0;
         }else if((estados[position] == 'M') && etiquetas[position] == blocks){
+            result = -1;
             try{
                 if(tipo == 'D'){
                     lockAct = cpu.lockD.tryLock();
@@ -237,7 +239,7 @@ public class Cache {
         }
 
         if(lockAct == true){
-            if(estados[blocks] == 'I'){
+            if(estados[position] == 'I'){
                 return 0; // Esta invalido o , no hay nada que hacer.
             }else{
                 for (int i = 0; i < 4; i++) {
@@ -247,7 +249,7 @@ public class Cache {
                         cpu.RAMI[(blocks * size) + i] = memoria[(position * size) + i];
                     }
                 }
-                estados[blocks] = 'C'; // Se ha compartido el bloque.
+                estados[position] = 'C'; // Se ha compartido el bloque.
                 // Reloj + 1
             }
         }else{

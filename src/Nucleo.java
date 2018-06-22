@@ -230,13 +230,13 @@ public class Nucleo implements Runnable {
             while (quantum[hililloP]!= 0){
                 ejecutarI(fetch(hililloP), hililloP);
                 quantum[hililloP]--;
-                try {
-                    cyclicBarrier.await();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (BrokenBarrierException e) {
-                    e.printStackTrace();
-                }
+                //try {
+                    //cyclicBarrier.await();
+                //} catch (InterruptedException e) {
+                    //e.printStackTrace();
+                //} catch (BrokenBarrierException e) {
+                    //e.printStackTrace();
+                //}
             }
             guardarHilillo(hililloP);
             cargarHilillo(cpu.contextos.removeFirst(), hililloP);

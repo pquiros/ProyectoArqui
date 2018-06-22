@@ -49,7 +49,7 @@ public class CPU {
         cacheI0.linkcache(cacheI1);
         cacheI1.linkcache(cacheI0);
 
-        cyclicBarrier = new CyclicBarrier(3);
+        cyclicBarrier = new CyclicBarrier(1);
 
         n0= new Nucleo(0, cacheD0, cacheI0, this, cyclicBarrier);
         n1= new Nucleo(1, cacheD1, cacheI1, this, cyclicBarrier);
@@ -133,15 +133,15 @@ public class CPU {
 
 //Ejecuta la barrera de espera para el cpu
     public void ejecutar() {
-        try {
+        //try {
 
 
-            cyclicBarrier.await();// Esta es la barrera que espera a todos los hilos
+            //cyclicBarrier.await();// Esta es la barrera que espera a todos los hilos
 
-        } catch (InterruptedException ie) {
+        //} catch (InterruptedException ie) {
             //ie.printStackTrace();
-        } catch (BrokenBarrierException be) {
+        //} catch (BrokenBarrierException be) {
             //be.printStackTrace();
-        }
+        //}
     }
 }
