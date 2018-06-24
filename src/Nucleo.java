@@ -63,7 +63,7 @@ public class Nucleo implements Runnable {
     int[] fetch(int hillillo){// retorna int[] de 4
         int[] aux;
         if (!cacheI.isInCache(pc[hillillo])) {
-            falloDeCache(cacheI);
+            falloDeCache(cacheI, pc[hillillo]);
         }
         aux = cacheI.retornaIns(pc[hillillo]);
         return aux;
@@ -74,7 +74,7 @@ public class Nucleo implements Runnable {
         switch (instruccion[0]) {
             //DADDI
             case 8:
-                if (iD == 0) {
+                if (hililloP == 0) {
                     registrosHilo0[instruccion[2]] = registrosHilo0[instruccion[1]] + instruccion[3];
                 } else {
                     registrosHilo1[instruccion[2]] = registrosHilo1[instruccion[1]] + instruccion[3];
@@ -82,7 +82,7 @@ public class Nucleo implements Runnable {
                 break;
             //DADD
             case 32:
-                if (iD == 0) {
+                if (hililloP == 0) {
                     registrosHilo0[instruccion[3]] = registrosHilo0[instruccion[1]] + registrosHilo0[instruccion[2]];
                 } else {
                     registrosHilo1[instruccion[3]] = registrosHilo1[instruccion[1]] + registrosHilo1[instruccion[2]];
@@ -90,7 +90,7 @@ public class Nucleo implements Runnable {
                 break;
             //DSUB
             case 34:
-                if (iD == 0) {
+                if (hililloP == 0) {
                     registrosHilo0[instruccion[3]] = registrosHilo0[instruccion[1]] - registrosHilo0[instruccion[2]];
                 } else {
                     registrosHilo1[instruccion[3]] = registrosHilo1[instruccion[1]] - registrosHilo1[instruccion[2]];
@@ -98,7 +98,7 @@ public class Nucleo implements Runnable {
                 break;
             //DMUL
             case 12:
-                if (iD == 0) {
+                if (hililloP == 0) {
                     registrosHilo0[instruccion[3]] = registrosHilo0[instruccion[1]] * registrosHilo0[instruccion[2]];
                 } else {
                     registrosHilo1[instruccion[3]] = registrosHilo1[instruccion[1]] * registrosHilo1[instruccion[2]];
@@ -106,7 +106,7 @@ public class Nucleo implements Runnable {
                 break;
             //DDIV
             case 14:
-                if (iD == 0) {
+                if (hililloP == 0) {
                     registrosHilo0[instruccion[3]] = registrosHilo0[instruccion[1]] / registrosHilo0[instruccion[2]];
                 } else {
                     registrosHilo1[instruccion[3]] = registrosHilo1[instruccion[1]] / registrosHilo1[instruccion[2]];
@@ -114,31 +114,31 @@ public class Nucleo implements Runnable {
                 break;
             //BEQZ
             case 4:
-                if (iD == 0) {
+                if (hililloP == 0) {
                     if (instruccion[1] == 0) {
-                        pc[0] += 4 * instruccion[3];
+                        pc[hililloP] += 4 * instruccion[3];
                     }
                 } else {
                     if (instruccion[1] == 0) {
-                        pc[1] += 4 * instruccion[3];
+                        pc[hililloP] += 4 * instruccion[3];
                     }
                 }
                 break;
             //BNEZ
             case 5:
-                if (iD != 0) {
+                if (hililloP == 0) {
                     if (instruccion[1] != 0) {
-                        pc[0] += 4 * instruccion[3];
+                        pc[hililloP] += 4 * instruccion[3];
                     }
                 } else {
                     if (instruccion[1] != 0) {
-                        pc[1] += 4 * instruccion[3];
+                        pc[hililloP] += 4 * instruccion[3];
                     }
                 }
                 break;
             //JAL
             case 3:
-                if (iD != 0) {
+                if (hililloP == 0) {
                     registrosHilo0[31] = instruccion[3];
                     pc[0] += instruccion[3];
                 } else {
@@ -148,7 +148,7 @@ public class Nucleo implements Runnable {
                 break;
             //JR
             case 2:
-                if (iD != 0) {
+                if (hililloP == 0) {
                     pc[0] += registrosHilo0[instruccion[1]];
                 } else {
                     pc[1] += registrosHilo1[instruccion[1]];
@@ -156,12 +156,15 @@ public class Nucleo implements Runnable {
                 break;
             //LW
             case 35:
-
-
+                if (hililloP == 0) {
+                    registrosHilo0[instruccion[2]]= LW(registrosHilo0[instruccion[1]]+instruccion[3]);
+                } else {
+                    registrosHilo1[instruccion[2]]= LW(registrosHilo1[instruccion[1]]+instruccion[3]);
+                }
                 break;
             //SW
             case 43:
-                if (iD == 0) {
+                if (hililloP == 0) {
                     cacheD.storeCheck(registrosHilo0[instruccion[1]], registrosHilo0[instruccion[2]]);
                 } else {
                     cacheD.storeCheck(registrosHilo1[instruccion[1]], registrosHilo1[instruccion[2]]);
@@ -222,12 +225,13 @@ public class Nucleo implements Runnable {
 
     public void SW(){}
 
-    void falloDeCache(Cache c){
+    void falloDeCache(Cache c, int d){
         if(id==0){
             /*hijoSuicida = new HijoSuicida();
             Thread hilo= new Thread(hijoSuicida);
             hilo.start();*/
         }
+        cacheI.loadFromMemory(d);
 
         // hilo se debe matar con hilo.join() en cuanto el padre resuelva el fallo de cache?
         //R: no.
@@ -236,8 +240,12 @@ public class Nucleo implements Runnable {
 
     public void run(){
         while(!cpu.contextos.isEmpty()){
+            cargarHilillo(cpu.contextos.removeFirst(), hililloP);
+            if(id==0)hililloP++; hililloP%=2;
             while (quantum[hililloP]!= 0){
                 ejecutarI(fetch(hililloP), hililloP);
+                pc[hililloP]+=4;
+                System.out.println("Hillido "+idHilillo[hililloP]+" ejecuntando pc "+pc[hililloP]);
                 quantum[hililloP]--;
                 try {
                     cyclicBarrier.await();
@@ -248,8 +256,7 @@ public class Nucleo implements Runnable {
                 }
             }
             cpu.contextos.addLast(guardarHilillo(hililloP));
-            cargarHilillo(cpu.contextos.removeFirst(), hililloP);
-            if(id==0)hililloP++; hililloP%=2;
+
         }
     }
 

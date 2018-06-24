@@ -52,7 +52,7 @@ public class CPU {
         cacheI0.linkcache(cacheI1);
         cacheI1.linkcache(cacheI0);
 
-        cyclicBarrier = new CyclicBarrier(1);
+        cyclicBarrier = new CyclicBarrier(2);
 
         n0= new Nucleo(1, cacheD0, cacheI0, this, cyclicBarrier);
         n1= new Nucleo(1, cacheD1, cacheI1, this, cyclicBarrier);
@@ -69,7 +69,7 @@ public class CPU {
 
     private void start(int qntm) {
         quatum = qntm;
-        int nHilillos = 5;
+        int nHilillos = 1;
         int pcAux=0;
         for(int i=0; i<=nHilillos; i++){
             int p = pcAux;
@@ -83,7 +83,7 @@ public class CPU {
                     }
                 }
                 Contexto contexto= new Contexto(p,i);
-                System.out.println(p);
+                System.out.println("El hilillo "+i+" tiene un pc de "+p);
                 contextos.add(contexto);
             } catch (FileNotFoundException e) {
                 System.out.println("Error al leer el archivo "+i);
@@ -93,13 +93,26 @@ public class CPU {
                 e.printStackTrace();
             }
         }
-        for(int kk: RAMI){
+        /*for(int kk: RAMI){
             System.out.print(kk);
-        }
-        n0.cargarHilillo(contextos.removeFirst(), 0);
-        n1.cargarHilillo(contextos.removeFirst(), 0);
+        }*/
+        //se carga en nucleo
+        //n0.cargarHilillo(contextos.removeFirst(), 0);
+        //n1.cargarHilillo(contextos.removeFirst(), 0);
         //n0.cargarHilillo(contextos.removeFirst(), 1);
 
+        //n0.run();
+        //n1.run();
+        Thread h0= new Thread(n0);
+        Thread h1= new Thread(n1);
+        h0.start();
+        h1.start();
+        try {
+            h0.join();
+            h1.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         // D: 96 | I: 640
 
         //cacheD0.storeCheck(45, 97);

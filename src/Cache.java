@@ -86,7 +86,7 @@ public class Cache {
 
                         // Carga el bloque desde memoria principal.
 
-                        for (int i = 0; i < 4; i++) {
+                        for (int i = 0; i < size; i++) {
                             if (tipo == 'D') {
                                 memoria[(position * size) + i] = cpu.RAMD[(blocks * size) + i];
                             } else if (tipo == 'I') {
@@ -275,13 +275,13 @@ public class Cache {
     // solo se llama si la instrución está
     int[] retornaIns(int nInstrucion){
         int[] i = new int[4];
-        int pos = nInstrucion%size + (nInstrucion/size)*16;
+        int pos = nInstrucion%size + (nInstrucion/size)*blockCount;
         for(int y = 0; y<4; y++){i[y]=memoria[pos+y];}
         return i;
     }
 
     // retorna si la instruccion está en cache
     public boolean isInCache(int bloque) {
-        return etiquetas[bloque%size]== bloque;
+        return etiquetas[bloque%blockCount]== bloque;
     }
 }
