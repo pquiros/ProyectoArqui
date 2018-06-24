@@ -15,6 +15,8 @@ import java.util.concurrent.CyclicBarrier;
 public class CPU {
     //COLA de contextos
     LinkedList<Contexto> contextos;
+
+    LinkedList<Contexto> estadisticas;
     //COLA de hilillos
     LinkedList<BufferedReader> hilillos;
     int[] RAMD;
@@ -39,6 +41,7 @@ public class CPU {
     public CPU(){
         quatum = 0;
         contextos = new LinkedList<>();
+        estadisticas = new LinkedList<>();
         hilillos = new LinkedList<>();
         cacheD0 = new Cache('D', 8, this);
         cacheD1 = new Cache('D', 4, this);
@@ -51,7 +54,7 @@ public class CPU {
 
         cyclicBarrier = new CyclicBarrier(1);
 
-        n0= new Nucleo(0, cacheD0, cacheI0, this, cyclicBarrier);
+        n0= new Nucleo(1, cacheD0, cacheI0, this, cyclicBarrier);
         n1= new Nucleo(1, cacheD1, cacheI1, this, cyclicBarrier);
 
         RAMD= new int[96];
@@ -95,13 +98,13 @@ public class CPU {
         }
         n0.cargarHilillo(contextos.removeFirst(), 0);
         n1.cargarHilillo(contextos.removeFirst(), 0);
-        n0.cargarHilillo(contextos.removeFirst(), 1);
+        //n0.cargarHilillo(contextos.removeFirst(), 1);
 
         // D: 96 | I: 640
 
-        cacheD0.storeCheck(45, 97);
-        cacheD1.storeCheck(46,32);
-        cacheD0.storeCheck(31,64);
+        //cacheD0.storeCheck(45, 97);
+        //cacheD1.storeCheck(46,32);
+        //cacheD0.storeCheck(31,64);
     }
 
     public static void main(String[] args){

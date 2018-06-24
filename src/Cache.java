@@ -149,7 +149,7 @@ public class Cache {
         return memoria[finalep];
     }
 
-    public int storeCheck(int direction, int data) {
+        public int storeCheck(int direction, int data) {
         boolean lockAct = false;
         boolean otherLockAct = false;
         int blocks = direction / size;
@@ -275,7 +275,8 @@ public class Cache {
     // solo se llama si la instrución está
     int[] retornaIns(int nInstrucion){
         int[] i = new int[4];
-
+        int pos = nInstrucion%size + (nInstrucion/size)*16;
+        for(int y = 0; y<4; y++){i[y]=memoria[pos+y];}
         return i;
     }
 

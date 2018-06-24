@@ -61,7 +61,7 @@ public class Nucleo implements Runnable {
     }
 
     int[] fetch(int hillillo){// retorna int[] de 4
-        int[] aux = new int[4];
+        int[] aux;
         if (!cacheI.isInCache(pc[hillillo])) {
             falloDeCache(cacheI);
         }
@@ -157,14 +157,22 @@ public class Nucleo implements Runnable {
             //LW
             case 35:
 
+
                 break;
             //SW
             case 43:
-
+                if (iD == 0) {
+                    cacheD.storeCheck(registrosHilo0[instruccion[1]], registrosHilo0[instruccion[2]]);
+                } else {
+                    cacheD.storeCheck(registrosHilo1[instruccion[1]], registrosHilo1[instruccion[2]]);
+                }
                 break;
             //FIN
             case 63:
 
+                cpu.estadisticas.addLast(guardarHilillo(hililloP));
+                cargarHilillo(cpu.contextos.removeFirst(), hililloP);
+                if(id==0)hililloP++; hililloP%=2;
                 break;
         }
     }
@@ -220,6 +228,7 @@ public class Nucleo implements Runnable {
             Thread hilo= new Thread(hijoSuicida);
             hilo.start();*/
         }
+
         // hilo se debe matar con hilo.join() en cuanto el padre resuelva el fallo de cache?
         //R: no.
     }
@@ -230,17 +239,17 @@ public class Nucleo implements Runnable {
             while (quantum[hililloP]!= 0){
                 ejecutarI(fetch(hililloP), hililloP);
                 quantum[hililloP]--;
-                //try {
-                    //cyclicBarrier.await();
-                //} catch (InterruptedException e) {
-                    //e.printStackTrace();
-                //} catch (BrokenBarrierException e) {
-                    //e.printStackTrace();
-                //}
+                try {
+                    cyclicBarrier.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (BrokenBarrierException e) {
+                    e.printStackTrace();
+                }
             }
-            guardarHilillo(hililloP);
+            cpu.contextos.addLast(guardarHilillo(hililloP));
             cargarHilillo(cpu.contextos.removeFirst(), hililloP);
-            hililloP++; hililloP%=2;
+            if(id==0)hililloP++; hililloP%=2;
         }
     }
 
