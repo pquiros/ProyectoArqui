@@ -63,13 +63,13 @@ public class Nucleo implements Runnable {
     int[] fetch(int hillillo){// retorna int[] de 4
         int[] aux;
         if (!cacheI.isInCache(pc[hillillo])) {
-            falloDeCache(cacheI, pc[hillillo]);
+            falloDeCache(cacheI, pc[hillillo], hillillo);
         }
         aux = cacheI.retornaIns(pc[hillillo]);
         return aux;
     }
 
-    void ejecutarI(int[] instruccion, int iD) {
+    boolean ejecutarI(int[] instruccion, int iD) {
 
         switch (instruccion[0]) {
             //DADDI
@@ -174,10 +174,11 @@ public class Nucleo implements Runnable {
             case 63:
 
                 cpu.estadisticas.addLast(guardarHilillo(hililloP));
-                cargarHilillo(cpu.contextos.removeFirst(), hililloP);
+                if (!cpu.contextos.isEmpty()) {cargarHilillo(cpu.contextos.removeFirst(), hililloP);}
                 if(id==0)hililloP++; hililloP%=2;
-                break;
+                return true;
         }
+        return false;
     }
 
     int convertDirBloque(int dir){
@@ -225,13 +226,15 @@ public class Nucleo implements Runnable {
 
     public void SW(){}
 
-    void falloDeCache(Cache c, int d){
+    void falloDeCache(Cache c, int d, int hillillo){
         if(id==0){
             /*hijoSuicida = new HijoSuicida();
             Thread hilo= new Thread(hijoSuicida);
             hilo.start();*/
         }
-        cacheI.loadFromMemory(d);
+        if (!cacheI.isInCache(pc[hillillo])) {
+            cacheI.loadFromMemory(d);
+        }
 
         // hilo se debe matar con hilo.join() en cuanto el padre resuelva el fallo de cache?
         //R: no.
@@ -242,10 +245,12 @@ public class Nucleo implements Runnable {
         while(!cpu.contextos.isEmpty()){
             cargarHilillo(cpu.contextos.removeFirst(), hililloP);
             if(id==0)hililloP++; hililloP%=2;
+            boolean var;
             while (quantum[hililloP]!= 0){
-                ejecutarI(fetch(hililloP), hililloP);
+                var = ejecutarI(fetch(hililloP), hililloP);
                 pc[hililloP]+=4;
-                System.out.println("Hillido "+idHilillo[hililloP]+" ejecuntando pc "+pc[hililloP]);
+                if (var) {break;}
+                System.out.println("Hilillo "+idHilillo[hililloP]+" ejecuntando pc "+pc[hililloP]);
                 quantum[hililloP]--;
                 try {
                     cyclicBarrier.await();

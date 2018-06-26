@@ -88,7 +88,7 @@ public class Cache {
 
                         for (int i = 0; i < size; i++) {
                             if (tipo == 'D') {
-                                memoria[(position * size) + i] = cpu.RAMD[(blocks * size) + i];
+                                memoria[(position * size) + i] = cpu.RAMD[(blocks /** size*/) + i];
                             } else if (tipo == 'I') {
                                 memoria[(position * size) + i] = cpu.RAMI[(blocks * size) + i];
                             }
@@ -276,7 +276,9 @@ public class Cache {
     int[] retornaIns(int nInstrucion){
         int[] i = new int[4];
         int pos = nInstrucion%size + (nInstrucion/size)*blockCount;
-        for(int y = 0; y<4; y++){i[y]=memoria[pos+y];}
+        for(int y = 0; y<4; y++){i[y]=memoria[pos+y];
+            System.out.print(i[y]);}
+        System.out.println();
         return i;
     }
 
