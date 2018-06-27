@@ -48,70 +48,75 @@ public class Cache {
     }
 
     public int loadFromMemory(int direction){
-        boolean lockAct = false;
-        boolean otherLockAct = false;
-        int blocks = direction / size;
-        int position = blocks % blockCount;
-
-        try{
-            if(tipo == 'D'){
-                lockAct = cpu.lockD.tryLock();
-            }else if(tipo == 'I'){
-                lockAct = cpu.lockI.tryLock();
+        try {
+            boolean lockAct = false;
+            boolean otherLockAct = false;
+            int blocks = direction / size;
+            int position = blocks % blockCount;
+            if(blocks == 40){
+                int o = 0;
             }
 
-            if(!lockAct) {
-                return -1;
-            }else {
-                if(estados[position] == 'M'){ // Si esta en M quiere decir que es un bloque victima
-                    // Reloj + 39
-                    storeToMemory(direction); // Copia ese bloque a memoria y lo invalida en cache.
-
-                    // Reloj + 1
+            try {
+                if (tipo == 'D') {
+                    lockAct = cpu.lockD.tryLock();
+                } else if (tipo == 'I') {
+                    lockAct = cpu.lockI.tryLock();
                 }
 
-                // Revizar la otra cache
+                if (!lockAct) {
+                    return -1;
+                } else {
+                    if (estados[position] == 'M') { // Si esta en M quiere decir que es un bloque victima
+                        // Reloj + 39
+                        storeToMemory(direction); // Copia ese bloque a memoria y lo invalida en cache.
 
-                try{
-                    otherLockAct = othercache.lock.tryLock(); // La posicion esta disponible en la otra cache?
-
-                    if(!otherLockAct){ // NO
-                        //no deberia retornar -1
-                        // Pues nada, libera el bus en finally.
+                        // Reloj + 1
                     }
-                    else{ // SI
-                        if (othercache.checkCacheModified(direction) == true && othercache.checkCacheIdentity(position) == blocks) { // Esta el bloque modificado?
-                            // Toma la posicion de cache y lo copia en ambos, memoria y este cache, y ambos en estado C
-                            othercache.storeToMemory(direction);
-                        }
 
-                        // Carga el bloque desde memoria principal.
+                    // Revizar la otra cache
 
-                        for (int i = 0; i < size; i++) {
-                            System.out.println("CARGANDO BLOQUE "+blocks);
-                            if (tipo == 'D') {
+                    try {
+                        otherLockAct = othercache.lock.tryLock(); // La posicion esta disponible en la otra cache?
 
-                                memoria[(position * size) + i] = cpu.RAMD[(blocks * size) + i];
-                            } else if (tipo == 'I') {
-                                memoria[(position * size) + i] = cpu.RAMI[(blocks * size) + i];
+                        if (!otherLockAct) { // NO
+                            //no deberia retornar -1
+                            // Pues nada, libera el bus en finally.
+                        } else { // SI
+                            if (othercache.checkCacheModified(direction) == true && othercache.checkCacheIdentity(position) == blocks) { // Esta el bloque modificado?
+                                // Toma la posicion de cache y lo copia en ambos, memoria y este cache, y ambos en estado C
+                                othercache.storeToMemory(direction);
                             }
-                        }
-                        etiquetas[position] = blocks;
-                        estados[position] = 'C';
-                        // Reloj +39
-                    }
 
-                }finally{
-                    if(othercache.lock.isHeldByCurrentThread())
-                        othercache.lock.unlock();
+                            // Carga el bloque desde memoria principal.
+                            // System.out.println("CARGANDO BLOQUE " + blocks);
+                            for (int i = 0; i < size; i++) {
+                                if (tipo == 'D') {
+
+                                    memoria[(position * size) + i] = cpu.RAMD[(blocks * size) + i];
+                                } else if (tipo == 'I') {
+                                    memoria[(position * size) + i] = cpu.RAMI[(blocks * size) + i];
+                                }
+                            }
+                            etiquetas[position] = blocks;
+                            estados[position] = 'C';
+                            // Reloj +39
+                        }
+
+                    } finally {
+                        if (othercache.lock.isHeldByCurrentThread())
+                            othercache.lock.unlock();
+                    }
                 }
+            } finally {
+                if (cpu.lockD.isHeldByCurrentThread())
+                    cpu.lockD.unlock();
             }
-        }finally{
-            if(cpu.lockD.isHeldByCurrentThread())
-                cpu.lockD.unlock();
+            // System.out.println("load" + tipo + " del b " + blocks + " a p " + position);
+            return 0;
+        }catch (ArrayIndexOutOfBoundsException e){
+            return -1;
         }
-        System.out.println("load"+tipo+" del b "+blocks+" a p "+position);
-        return 0;
     }
 
     // True si es M o C
@@ -182,6 +187,10 @@ public class Cache {
                             }
                             else{ // SI
                                 success = othercache.invalidate(direction);
+                                if(success == 0){
+                                    int otherPosition = blocks % othercache.getBlockAmount();
+                                    othercache.estados[otherPosition] = 'I';
+                                }
                             }
                         }finally{
                             if(othercache.lock.isHeldByCurrentThread())
@@ -190,8 +199,6 @@ public class Cache {
                     }
 
                     if(success == 0){
-                        int otherPosition = blocks % othercache.getBlockAmount();
-                        othercache.estados[otherPosition] = 'I';
                         loadFromMemory(direction);
                         memoria[(position * size) + wordp] = data;
                         estados[position] = 'M';
@@ -283,10 +290,13 @@ public class Cache {
     int[] retornaIns(int nInstrucion){
         int[] i = new int[4];
         int pos = nInstrucion%size + size*((nInstrucion/size)%blockCount);
-        System.out.print(nInstrucion+" "+pos+" ");
-        for(int y = 0; y<4; y++){i[y]=memoria[pos+y];
-            System.out.print(i[y]);}
-        System.out.println();
+        //System.out.print(nInstrucion + " " + pos + " [");
+        for(int y = 0; y<4; y++) {
+            i[y]=memoria[pos+y];
+        //    System.out.print(" " + i[y] + " ");
+        }
+        //System.out.print("]");
+        //System.out.println();
         return i;
     }
 

@@ -59,11 +59,15 @@ public class CPU {
 
         RAMD= new int[104];
         RAMI= new int[640];
+        for(int i=0; i<RAMI.length; ++i){
+            RAMI[i]=63;
+            RAMI[i+1]=0;
+            RAMI[i+2]=0;
+            RAMI[i+3]=0;
+            i = i+3;
+        }
         for(int i=0; i<RAMD.length; i++){
             RAMD[i]=i;
-        }
-        for(int i=0; i<RAMI.length; i++){
-            RAMI[i]=i;
         }
     }
 
@@ -103,16 +107,17 @@ public class CPU {
 
         //n0.run();
         //n1.run();
-        Thread h0= new Thread(n0);
-        Thread h1= new Thread(n1);
-        h0.start();
+        Nucleo nucleo = new Nucleo(1,cacheD0, cacheI0, this, cyclicBarrier );
+        nucleo.run();
+        //Thread h1= new Thread(n1);
+        //h0.start();
         //h1.start();
-        try {
-            h0.join();
-            //h1.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        //try {
+        //    h0.join();
+        //    //h1.join();
+        //} catch (InterruptedException e) {
+        //    e.printStackTrace();
+        //}
         // D: 96 | I: 640
 
         //cacheD0.storeCheck(45, 97);
@@ -123,7 +128,6 @@ public class CPU {
     public static void main(String[] args){
         String mens1 = "Introduzca el quantum que desea asignar al programa";
         String mens2 = "Debe introducir un numero";
-
 
         CPU cpu = new CPU();
         int qntm = 0;
@@ -150,7 +154,6 @@ public class CPU {
 //Ejecuta la barrera de espera para el cpu
     public void ejecutar() {
         //try {
-
 
             //cyclicBarrier.await();// Esta es la barrera que espera a todos los hilos
 

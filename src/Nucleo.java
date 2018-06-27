@@ -18,7 +18,7 @@ public class Nucleo implements Runnable {
     Cache cacheI;
     Cache cacheD;
     CyclicBarrier cyclicBarrier;
-
+    int endAmount = 0;
     HijoSuicida hijoSuicida;
 
     public Nucleo(int tipo, Cache cD,Cache  cI, CPU c, CyclicBarrier cb) {
@@ -70,69 +70,102 @@ public class Nucleo implements Runnable {
     }
 
     boolean ejecutarI(int[] instruccion, int iD) {
-
+        System.out.print("[");
+        for(int y = 0; y<4; y++) {
+            System.out.print(" " + instruccion[y] + " ");
+        }
+        System.out.print("]\n");
+        int ole = 0;
         switch (instruccion[0]) {
             //DADDI
             case 8:
                 if (hililloP == 0) {
-                    registrosHilo0[instruccion[2]] = registrosHilo0[instruccion[1]] + instruccion[3];
+                    int par1 = registrosHilo0[instruccion[1]];
+                    int par2 = instruccion[3];
+                    registrosHilo0[instruccion[2]] = par1 + par2;
                 } else {
-                    registrosHilo1[instruccion[2]] = registrosHilo1[instruccion[1]] + instruccion[3];
+                    int par1 = registrosHilo1[instruccion[1]];
+                    int par2 = instruccion[3];
+                    registrosHilo1[instruccion[2]] = par1 + par2;
                 }
                 break;
             //DADD
             case 32:
                 if (hililloP == 0) {
-                    registrosHilo0[instruccion[3]] = registrosHilo0[instruccion[1]] + registrosHilo0[instruccion[2]];
+                    int par1 = registrosHilo0[instruccion[1]];
+                    int par2 = registrosHilo0[instruccion[2]];
+                    registrosHilo0[instruccion[3]] = par1 + par2;
                 } else {
-                    registrosHilo1[instruccion[3]] = registrosHilo1[instruccion[1]] + registrosHilo1[instruccion[2]];
+                    int par1 = registrosHilo1[instruccion[1]];
+                    int par2 = registrosHilo1[instruccion[2]];
+                    registrosHilo1[instruccion[3]] = par1 + par2;
                 }
                 break;
             //DSUB
             case 34:
                 if (hililloP == 0) {
-                    registrosHilo0[instruccion[3]] = registrosHilo0[instruccion[1]] - registrosHilo0[instruccion[2]];
+                    int par1 = registrosHilo0[instruccion[1]];
+                    int par2 = registrosHilo0[instruccion[2]];
+                    registrosHilo0[instruccion[3]] = par1 - par2;
                 } else {
-                    registrosHilo1[instruccion[3]] = registrosHilo1[instruccion[1]] - registrosHilo1[instruccion[2]];
+                    int par1 = registrosHilo1[instruccion[1]];
+                    int par2 = registrosHilo1[instruccion[2]];
+                    registrosHilo1[instruccion[3]] = par1 - par2;
                 }
                 break;
             //DMUL
             case 12:
                 if (hililloP == 0) {
-                    registrosHilo0[instruccion[3]] = registrosHilo0[instruccion[1]] * registrosHilo0[instruccion[2]];
+                    int par1 = registrosHilo0[instruccion[1]];
+                    int par2 = registrosHilo0[instruccion[2]];
+                    registrosHilo0[instruccion[3]] = par1 * par2;
                 } else {
-                    registrosHilo1[instruccion[3]] = registrosHilo1[instruccion[1]] * registrosHilo1[instruccion[2]];
+                    int par1 = registrosHilo1[instruccion[1]];
+                    int par2 = registrosHilo1[instruccion[2]];
+                    registrosHilo1[instruccion[3]] = par1 * par2;
                 }
                 break;
             //DDIV
             case 14:
                 if (hililloP == 0) {
-                    registrosHilo0[instruccion[3]] = registrosHilo0[instruccion[1]] / registrosHilo0[instruccion[2]];
+                    int par1 = registrosHilo0[instruccion[1]];
+                    int par2 = registrosHilo0[instruccion[2]];
+                    registrosHilo0[instruccion[3]] = par1 / par2;
                 } else {
-                    registrosHilo1[instruccion[3]] = registrosHilo1[instruccion[1]] / registrosHilo1[instruccion[2]];
+                    int par1 = registrosHilo1[instruccion[1]];
+                    int par2 = registrosHilo1[instruccion[2]];
+                    registrosHilo1[instruccion[3]] = par1 / par2;
                 }
                 break;
             //BEQZ
             case 4:
                 if (hililloP == 0) {
-                    if (instruccion[1] == 0) {
+                    if (registrosHilo0[instruccion[1]] == 0) {
                         pc[hililloP] += 4 * instruccion[3];
+                    }else{
+                        return false;
                     }
                 } else {
-                    if (instruccion[1] == 0) {
+                    if (registrosHilo1[instruccion[1]] == 0) {
                         pc[hililloP] += 4 * instruccion[3];
+                    }else{
+                        return false;
                     }
                 }
                 break;
             //BNEZ
             case 5:
                 if (hililloP == 0) {
-                    if (instruccion[1] != 0) {
+                    if (registrosHilo0[instruccion[1]] != 0) { // Cambio
                         pc[hililloP] += 4 * instruccion[3];
+                    }else{
+                        return false;
                     }
                 } else {
-                    if (instruccion[1] != 0) {
+                    if (registrosHilo1[instruccion[1]] != 0) { // Cambio
                         pc[hililloP] += 4 * instruccion[3];
+                    }else{
+                        return false;
                     }
                 }
                 break;
@@ -157,22 +190,26 @@ public class Nucleo implements Runnable {
             //LW
             case 35:
                 if (hililloP == 0) {
-                    registrosHilo0[instruccion[2]]= LW(registrosHilo0[instruccion[1]]+instruccion[3]);
+                    int direccion = registrosHilo0[instruccion[1]]+instruccion[3];
+                    registrosHilo0[instruccion[2]]= LW(direccion);
                 } else {
-                    registrosHilo1[instruccion[2]]= LW(registrosHilo1[instruccion[1]]+instruccion[3]);
+                    int direccion = registrosHilo1[instruccion[1]]+instruccion[3];
+                    registrosHilo1[instruccion[2]]= LW(direccion);
                 }
                 break;
             //SW
             case 43:
                 if (hililloP == 0) {
-                    cacheD.storeCheck(registrosHilo0[instruccion[1]]+instruccion[3], registrosHilo0[instruccion[2]]);
+                    int direccion = registrosHilo0[instruccion[1]]+instruccion[3];
+                    cacheD.storeCheck(direccion, registrosHilo0[instruccion[2]]);
                 } else {
-                    cacheD.storeCheck(registrosHilo1[instruccion[1]]+instruccion[3], registrosHilo1[instruccion[2]]+instruccion[3]);
+                    int direccion = registrosHilo1[instruccion[1]]+instruccion[3];
+                    cacheD.storeCheck(direccion, registrosHilo1[instruccion[2]]);
                 }
                 break;
             //FIN
             case 63:
-
+                ++endAmount;
                 cpu.estadisticas.addLast(guardarHilillo(hililloP));
                 if (!cpu.contextos.isEmpty()) {cargarHilillo(cpu.contextos.removeFirst(), hililloP);}
                 if(id==0)hililloP++; hililloP%=2;
@@ -191,39 +228,43 @@ public class Nucleo implements Runnable {
     }*/
 
     public int LW(int direction){
-        direction/=4;
-        int answer = 0;
-        boolean lockAct = false;
-        int blocks = direction / cacheD.getBlockSize();
-        int wordp = direction % cacheD.getBlockSize();
-        int position = blocks % cacheD.getBlockAmount();
-        int success = -1;
+        try {
+            direction /= 4;
+            int answer = 0;
+            boolean lockAct = false;
+            int blocks = direction / cacheD.getBlockSize();
+            int wordp = direction % cacheD.getBlockSize();
+            int position = blocks % cacheD.getBlockAmount();
+            int success = -1;
 
-        while(success == -1) {
-            try{
-                lockAct = cacheD.lock.tryLock();
+            while (success == -1) {
+                try {
+                    lockAct = cacheD.lock.tryLock();
 
-                if(!lockAct){
-                    success = -1;
-                }
-                else{
-                    if (cacheD.checkCacheState(direction) == true && cacheD.checkCacheIdentity(direction) == blocks) {
-                        success = 0;
-                    }else{
-                        success = cacheD.loadFromMemory(direction);
+                    if (!lockAct) {
+                        success = -1;
+                    } else {
+                        if (cacheD.checkCacheState(direction) == true && cacheD.checkCacheIdentity(direction) == blocks) {
+                            success = 0;
+                        } else {
+                            success = cacheD.loadFromMemory(direction);
+                        }
+
+                        if (success == 0) {
+                            answer = cacheD.getMemoryData((position * cacheD.getBlockSize()) + wordp);
+                        }
                     }
-
-                    if(success == 0){
-                        answer = cacheD.getMemoryData((position*cacheD.getBlockSize()) + wordp);
-                    }
+                } finally {
+                    if (cacheD.lock.isHeldByCurrentThread())
+                        cacheD.lock.unlock();
                 }
-            }finally {
-                if(cacheD.lock.isHeldByCurrentThread())
-                    cacheD.lock.unlock();
             }
-        }
 
-        return answer;}
+            return answer;
+        }catch (NullPointerException e){
+            return -1;
+        }
+    }
 
     public void SW(){}
 
@@ -248,7 +289,7 @@ public class Nucleo implements Runnable {
             if(id==0)hililloP++; hililloP%=2;
             boolean var;
             while (quantum[hililloP]!= 0){
-                System.out.println("Hilillo "+idHilillo[hililloP]+" ejecuntando pc "+pc[hililloP]);
+                //System.out.println("Hilillo "+idHilillo[hililloP]+" ejecuntando pc "+pc[hililloP]);
                 var = ejecutarI(fetch(hililloP), hililloP);
                 pc[hililloP]+=4;
                 if (var) {break;}
