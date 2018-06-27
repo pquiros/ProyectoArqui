@@ -57,7 +57,7 @@ public class CPU {
         n0= new Nucleo(1, cacheD0, cacheI0, this, cyclicBarrier);
         n1= new Nucleo(1, cacheD1, cacheI1, this, cyclicBarrier);
 
-        RAMD= new int[96];
+        RAMD= new int[104];
         RAMI= new int[640];
         for(int i=0; i<RAMD.length; i++){
             RAMD[i]=i;
@@ -69,7 +69,7 @@ public class CPU {
 
     private void start(int qntm) {
         quatum = qntm;
-        int nHilillos = 1;
+        int nHilillos = 5;
         int pcAux=0;
         for(int i=0; i<=nHilillos; i++){
             int p = pcAux;

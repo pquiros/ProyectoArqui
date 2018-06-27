@@ -9,7 +9,7 @@ public class Cache {
     private char estados[];
     private int etiquetas[];
     private int memoria[];
-    private int tipo;
+    private char tipo;
     private int blockCount;
     private int size;
     public static ReentrantLock lock = new ReentrantLock();
@@ -76,6 +76,7 @@ public class Cache {
                     otherLockAct = othercache.lock.tryLock(); // La posicion esta disponible en la otra cache?
 
                     if(!otherLockAct){ // NO
+                        //no deberia retornar -1
                         // Pues nada, libera el bus en finally.
                     }
                     else{ // SI
@@ -87,8 +88,10 @@ public class Cache {
                         // Carga el bloque desde memoria principal.
 
                         for (int i = 0; i < size; i++) {
+                            System.out.println("CARGANDO BLOQUE "+blocks);
                             if (tipo == 'D') {
-                                memoria[(position * size) + i] = cpu.RAMD[(blocks /** size*/) + i];
+
+                                memoria[(position * size) + i] = cpu.RAMD[(blocks * size) + i];
                             } else if (tipo == 'I') {
                                 memoria[(position * size) + i] = cpu.RAMI[(blocks * size) + i];
                             }
@@ -107,6 +110,7 @@ public class Cache {
             if(cpu.lockD.isHeldByCurrentThread())
                 cpu.lockD.unlock();
         }
+        System.out.println("load"+tipo+" del b "+blocks+" a p "+position);
         return 0;
     }
 
@@ -149,7 +153,8 @@ public class Cache {
         return memoria[finalep];
     }
 
-        public int storeCheck(int direction, int data) {
+    public int storeCheck(int direction, int data) {
+        if(tipo=='D') direction/=4;
         boolean lockAct = false;
         boolean otherLockAct = false;
         int blocks = direction / size;
@@ -165,8 +170,9 @@ public class Cache {
                     success = -1;
                 }
                 else{
-                    if (checkCacheState(direction) == true && checkCacheIdentity(direction) == blocks) {
+                    if (/*checkCacheState(direction) == true && checkCacheIdentity(direction) == blocks*/ checkCacheModified(direction)) {
                         memoria[(position*size) + wordp] = data;
+                        break;
                     }else{
                         try{
                             otherLockAct = othercache.lock.tryLock(); // La posicion esta disponible en la otra cache?
@@ -227,6 +233,7 @@ public class Cache {
     }
 
     public int storeToMemory(int directon) {
+        directon/=4; //ojo
         boolean lockAct = false;
         int blocks = directon / size;
         int position = blocks % blockCount;
@@ -242,7 +249,7 @@ public class Cache {
             if(estados[position] == 'I'){
                 return 0; // Esta invalido o , no hay nada que hacer.
             }else{
-                for (int i = 0; i < 4; i++) {
+                for (int i = 0; i < size; i++) {
                     if (tipo == 'D') {
                         cpu.RAMD[(blocks * size) + i] = memoria[(position * size) + i];
                     } else if (tipo == 'I') {
@@ -275,7 +282,8 @@ public class Cache {
     // solo se llama si la instrución está
     int[] retornaIns(int nInstrucion){
         int[] i = new int[4];
-        int pos = nInstrucion%size + (nInstrucion/size)*blockCount;
+        int pos = nInstrucion%size + size*((nInstrucion/size)%blockCount);
+        System.out.print(nInstrucion+" "+pos+" ");
         for(int y = 0; y<4; y++){i[y]=memoria[pos+y];
             System.out.print(i[y]);}
         System.out.println();
@@ -283,7 +291,7 @@ public class Cache {
     }
 
     // retorna si la instruccion está en cache
-    public boolean isInCache(int bloque) {
-        return etiquetas[bloque%blockCount]== bloque;
+    public boolean isInCache(int d) {
+        return etiquetas[d/size%blockCount]== d/size;
     }
 }

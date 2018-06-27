@@ -165,9 +165,9 @@ public class Nucleo implements Runnable {
             //SW
             case 43:
                 if (hililloP == 0) {
-                    cacheD.storeCheck(registrosHilo0[instruccion[1]], registrosHilo0[instruccion[2]]);
+                    cacheD.storeCheck(registrosHilo0[instruccion[1]]+instruccion[3], registrosHilo0[instruccion[2]]);
                 } else {
-                    cacheD.storeCheck(registrosHilo1[instruccion[1]], registrosHilo1[instruccion[2]]);
+                    cacheD.storeCheck(registrosHilo1[instruccion[1]]+instruccion[3], registrosHilo1[instruccion[2]]+instruccion[3]);
                 }
                 break;
             //FIN
@@ -191,6 +191,7 @@ public class Nucleo implements Runnable {
     }*/
 
     public int LW(int direction){
+        direction/=4;
         int answer = 0;
         boolean lockAct = false;
         int blocks = direction / cacheD.getBlockSize();
@@ -232,7 +233,7 @@ public class Nucleo implements Runnable {
             Thread hilo= new Thread(hijoSuicida);
             hilo.start();*/
         }
-        if (!cacheI.isInCache(pc[hillillo])) {
+        while (!cacheI.isInCache(pc[hillillo])) {
             cacheI.loadFromMemory(d);
         }
 
@@ -247,10 +248,10 @@ public class Nucleo implements Runnable {
             if(id==0)hililloP++; hililloP%=2;
             boolean var;
             while (quantum[hililloP]!= 0){
+                System.out.println("Hilillo "+idHilillo[hililloP]+" ejecuntando pc "+pc[hililloP]);
                 var = ejecutarI(fetch(hililloP), hililloP);
                 pc[hililloP]+=4;
                 if (var) {break;}
-                System.out.println("Hilillo "+idHilillo[hililloP]+" ejecuntando pc "+pc[hililloP]);
                 quantum[hililloP]--;
                 try {
                     cyclicBarrier.await();
