@@ -83,7 +83,7 @@ public class Nucleo implements Runnable {
         }
         System.out.print("]\n");
         if(3 < instruccion.length){
-            if(instruccion[0] == 8 && instruccion[1] == 0 && instruccion[2] == 2 && instruccion[3] == 2){
+            if(instruccion[0] == 2 && instruccion[1] == 31 && instruccion[2] == 0 && instruccion[3] == 0){
                 int o = 0;
             }
             if(instruccion[0] == 8 && instruccion[1] == 0 && instruccion[2] == 3 && instruccion[3] == 3){
@@ -227,7 +227,6 @@ public class Nucleo implements Runnable {
                 ++endAmount;
                 cpu.estadisticas.addLast(guardarHilillo(hililloP));
                 needContext[hililloP] = true;
-                if (!cpu.contextos.isEmpty() && needContext[hililloP]) {cargarHilillo(cpu.contextos.removeFirst(), hililloP);}
                 if(id==0)hililloP++; hililloP%=2;
                 return true;
         }
@@ -302,12 +301,18 @@ public class Nucleo implements Runnable {
     }
 
 
-    public void run(){
+    public void run(){ // MAX 376
         while(!cpu.contextos.isEmpty()){
-            if (!cpu.contextos.isEmpty() && needContext[hililloP]) {cargarHilillo(cpu.contextos.removeFirst(), hililloP);}
+            if (!cpu.contextos.isEmpty() && needContext[hililloP]) {
+                Contexto c = cpu.contextos.removeFirst();
+                cargarHilillo(c, hililloP);
+            }
             if(id==0)hililloP++; hililloP%=2;
             boolean var;
             while (quantum[hililloP]!= 0){
+                if(548 <= pc[hililloP]){
+                    int o = 0;
+                }
                 //System.out.println("Hilillo "+idHilillo[hililloP]+" ejecuntando pc "+pc[hililloP]);
                 int[] instruccion = fetch(hililloP);
                 var = ejecutarI(instruccion, hililloP);
@@ -324,8 +329,9 @@ public class Nucleo implements Runnable {
                     e.printStackTrace();
                 }
             }
-            cpu.contextos.addLast(guardarHilillo(hililloP));
-
+            if(quantum[hililloP] == 0) {
+                cpu.contextos.addLast(guardarHilillo(hililloP));
+            }
         }
     }
 
