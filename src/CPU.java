@@ -105,19 +105,18 @@ public class CPU {
         //n1.cargarHilillo(contextos.removeFirst(), 0);
         //n0.cargarHilillo(contextos.removeFirst(), 1);
 
-        //n0.run();
-        //n1.run();
-        Nucleo nucleo = new Nucleo(1,cacheD0, cacheI0, this, cyclicBarrier );
-        nucleo.run();
-        //Thread h1= new Thread(n1);
-        //h0.start();
-        //h1.start();
-        //try {
-        //    h0.join();
-        //    //h1.join();
-        //} catch (InterruptedException e) {
-        //    e.printStackTrace();
-        //}
+        Nucleo n0 = new Nucleo(1,cacheD0, cacheI0, this, cyclicBarrier );
+        Thread h0= new Thread(n0);
+        Nucleo n1 = new Nucleo(1,cacheD1, cacheI1, this, cyclicBarrier );
+        Thread h1= new Thread(n1);
+        h0.start();
+        h1.start();
+        try {
+            h0.join();
+            h1.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         // D: 96 | I: 640
 
         //cacheD0.storeCheck(45, 97);

@@ -303,7 +303,7 @@ public class Nucleo implements Runnable {
 
     public void run(){ // MAX 376
         while(!cpu.contextos.isEmpty()){
-            if (!cpu.contextos.isEmpty() && needContext[hililloP]) {
+            if (!cpu.contextos.isEmpty() /*&& needContext[hililloP]*/) {
                 Contexto c = cpu.contextos.removeFirst();
                 cargarHilillo(c, hililloP);
             }
@@ -333,6 +333,7 @@ public class Nucleo implements Runnable {
                 cpu.contextos.addLast(guardarHilillo(hililloP));
             }
         }
+        
     }
 
     private class HijoSuicida implements Runnable{
