@@ -11,6 +11,7 @@ public class Nucleo implements Runnable {
     int registrosHilo0[];
     int registrosHilo1[];
     int pc[];
+    boolean needContext[];
     int quantum[];
     int idHilillo[];// nombre del hilillo
     int id;
@@ -32,11 +33,16 @@ public class Nucleo implements Runnable {
         if (tipo == 0) {
             registrosHilo1 = new int[32];
             pc = new int[2];
+            needContext = new boolean[2];
+            needContext[0] = true;
+            needContext[1] = true;
             quantum = new int[2];
             idHilillo = new int[2];
             hijoSuicida = new HijoSuicida();
         }else {
             pc = new int[1];
+            needContext = new boolean[1];
+            needContext[0] = true;
             quantum = new int[1];
             idHilillo = new int[1];
         }
@@ -46,6 +52,7 @@ public class Nucleo implements Runnable {
     }
 
     void cargarHilillo(Contexto c, int pos){
+        needContext[pos] = false;
         if(pos==1) registrosHilo1= c.registros;
         else registrosHilo0= c.registros;
         pc[pos] = c.pc;
@@ -219,7 +226,8 @@ public class Nucleo implements Runnable {
             case 63:
                 ++endAmount;
                 cpu.estadisticas.addLast(guardarHilillo(hililloP));
-                if (!cpu.contextos.isEmpty()) {cargarHilillo(cpu.contextos.removeFirst(), hililloP);}
+                needContext[hililloP] = true;
+                if (!cpu.contextos.isEmpty() && needContext[hililloP]) {cargarHilillo(cpu.contextos.removeFirst(), hililloP);}
                 if(id==0)hililloP++; hililloP%=2;
                 return true;
         }
@@ -296,6 +304,7 @@ public class Nucleo implements Runnable {
 
     public void run(){
         while(!cpu.contextos.isEmpty()){
+            if (!cpu.contextos.isEmpty() && needContext[hililloP]) {cargarHilillo(cpu.contextos.removeFirst(), hililloP);}
             if(id==0)hililloP++; hililloP%=2;
             boolean var;
             while (quantum[hililloP]!= 0){
