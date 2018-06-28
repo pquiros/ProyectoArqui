@@ -75,6 +75,14 @@ public class Nucleo implements Runnable {
             System.out.print(" " + instruccion[y] + " ");
         }
         System.out.print("]\n");
+        if(3 < instruccion.length){
+            if(instruccion[0] == 8 && instruccion[1] == 0 && instruccion[2] == 2 && instruccion[3] == 2){
+                int o = 0;
+            }
+            if(instruccion[0] == 8 && instruccion[1] == 0 && instruccion[2] == 3 && instruccion[3] == 3){
+                int o = 0;
+            }
+        }
         int ole = 0;
         switch (instruccion[0]) {
             //DADDI
@@ -275,6 +283,9 @@ public class Nucleo implements Runnable {
             hilo.start();*/
         }
         while (!cacheI.isInCache(pc[hillillo])) {
+            if(80<d){
+                int o = 0;
+            }
             cacheI.loadFromMemory(d);
         }
 
@@ -285,13 +296,15 @@ public class Nucleo implements Runnable {
 
     public void run(){
         while(!cpu.contextos.isEmpty()){
-            cargarHilillo(cpu.contextos.removeFirst(), hililloP);
             if(id==0)hililloP++; hililloP%=2;
             boolean var;
             while (quantum[hililloP]!= 0){
                 //System.out.println("Hilillo "+idHilillo[hililloP]+" ejecuntando pc "+pc[hililloP]);
-                var = ejecutarI(fetch(hililloP), hililloP);
-                pc[hililloP]+=4;
+                int[] instruccion = fetch(hililloP);
+                var = ejecutarI(instruccion, hililloP);
+                if(instruccion[0] != 63) {
+                    pc[hililloP] += 4;
+                }
                 if (var) {break;}
                 quantum[hililloP]--;
                 try {
