@@ -16,6 +16,7 @@ public class Cache {
 
     public Cache(char tippo, int bloque, CPU cepeu) {
 
+
         tipo = tippo;
         cpu = cepeu;
         int tamano = 0;// tamano de bloque
@@ -111,6 +112,8 @@ public class Cache {
             } finally {
                 if (cpu.lockD.isHeldByCurrentThread())
                     cpu.lockD.unlock();
+                if (cpu.lockI.isHeldByCurrentThread())
+                    cpu.lockI.unlock();
             }
             // System.out.println("load" + tipo + " del b " + blocks + " a p " + position);
             return 0;
@@ -233,6 +236,10 @@ public class Cache {
             }finally{
                 if(othercache.lock.isHeldByCurrentThread())
                     othercache.lock.unlock();
+                if (cpu.lockD.isHeldByCurrentThread())
+                    cpu.lockD.unlock();
+                if (cpu.lockI.isHeldByCurrentThread())
+                    cpu.lockI.unlock();
             }
         }
 
@@ -240,11 +247,11 @@ public class Cache {
     }
 
     public int storeToMemory(int directon) {
-        directon/=4; //ojo
         boolean lockAct = false;
         int blocks = directon / size;
         int position = blocks % blockCount;
         int block[] = new int[size];
+        int vintinB = etiquetas[position];
 
         if(this.tipo == 'D'){
             lockAct = cpu.lockD.isHeldByCurrentThread();
@@ -258,9 +265,9 @@ public class Cache {
             }else{
                 for (int i = 0; i < size; i++) {
                     if (tipo == 'D') {
-                        cpu.RAMD[(blocks * size) + i] = memoria[(position * size) + i];
+                        cpu.RAMD[(vintinB * size) + i] = memoria[(position * size) + i];
                     } else if (tipo == 'I') {
-                        cpu.RAMI[(blocks * size) + i] = memoria[(position * size) + i];
+                        cpu.RAMI[(vintinB * size) + i] = memoria[(position * size) + i];
                     }
                 }
                 estados[position] = 'C'; // Se ha compartido el bloque.

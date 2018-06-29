@@ -77,11 +77,11 @@ public class Nucleo implements Runnable {
     }
 
     boolean ejecutarI(int[] instruccion, int iD) {
-        System.out.print("[");
+        //System.out.print("[");
         for(int y = 0; y<4; y++) {
-            System.out.print(" " + instruccion[y] + " ");
+            //System.out.print(" " + instruccion[y] + " ");
         }
-        System.out.print("]\n");
+        //System.out.print("]\n");
         if(3 < instruccion.length){
             if(instruccion[0] == 2 && instruccion[1] == 31 && instruccion[2] == 0 && instruccion[3] == 0){
                 int o = 0;
