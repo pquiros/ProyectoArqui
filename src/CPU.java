@@ -61,14 +61,10 @@ public class CPU {
         RAMD= new int[104];
         RAMI= new int[640];
         for(int i=0; i<RAMI.length; ++i){
-            RAMI[i]=63;
-            RAMI[i+1]=0;
-            RAMI[i+2]=0;
-            RAMI[i+3]=0;
-            i = i+3;
+            RAMI[i]=1;
         }
         for(int i=0; i<RAMD.length; i++){
-            RAMD[i]=i;
+            RAMD[i]=1;
         }
     }
 
