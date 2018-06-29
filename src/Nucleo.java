@@ -225,6 +225,10 @@ public class Nucleo implements Runnable {
             //FIN
             case 63:
                 ++endAmount;
+                System.out.print(idHilillo[hililloP]+" : ");
+                for(int n=0; n<32; n++){
+                    System.out.println(n+" "+registrosHilo0[n]+" ");
+                }
                 cpu.estadisticas.addLast(guardarHilillo(hililloP));
                 needContext[hililloP] = true;
                 if(id==0)hililloP++; hililloP%=2;
@@ -315,10 +319,11 @@ public class Nucleo implements Runnable {
                 }
                 //System.out.println("Hilillo "+idHilillo[hililloP]+" ejecuntando pc "+pc[hililloP]);
                 int[] instruccion = fetch(hililloP);
+                pc[hililloP] += 4;
                 var = ejecutarI(instruccion, hililloP);
-                if(instruccion[0] != 63) {
+                /*if(instruccion[0] != 63) {
                     pc[hililloP] += 4;
-                }
+                }*/
                 if (var) {break;}
                 quantum[hililloP]--;
                 try {
@@ -333,7 +338,7 @@ public class Nucleo implements Runnable {
                 cpu.contextos.addLast(guardarHilillo(hililloP));
             }
         }
-        
+
     }
 
     private class HijoSuicida implements Runnable{

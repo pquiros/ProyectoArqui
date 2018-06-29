@@ -35,8 +35,8 @@ public class CPU {
 
 
 
-    Nucleo n0;
-    Nucleo n1;
+    private Nucleo n0;
+    private Nucleo n1;
 
     public CPU(){
         quatum = 0;
@@ -52,7 +52,7 @@ public class CPU {
         cacheI0.linkcache(cacheI1);
         cacheI1.linkcache(cacheI0);
 
-        cyclicBarrier = new CyclicBarrier(1);
+        cyclicBarrier = new CyclicBarrier(2);
 
         n0= new Nucleo(1, cacheD0, cacheI0, this, cyclicBarrier);
         n1= new Nucleo(1, cacheD1, cacheI1, this, cyclicBarrier);
@@ -105,9 +105,7 @@ public class CPU {
         //n1.cargarHilillo(contextos.removeFirst(), 0);
         //n0.cargarHilillo(contextos.removeFirst(), 1);
 
-        Nucleo n0 = new Nucleo(1,cacheD0, cacheI0, this, cyclicBarrier );
         Thread h0= new Thread(n0);
-        Nucleo n1 = new Nucleo(1,cacheD1, cacheI1, this, cyclicBarrier );
         Thread h1= new Thread(n1);
         h0.start();
         h1.start();
