@@ -1,9 +1,6 @@
 package src;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import  java.util.LinkedList;
 import java.util.Scanner;
 import java.util.StringTokenizer;
@@ -26,9 +23,18 @@ public class CPU {
     private Cache cacheD1;
     private Cache cacheI0;
     private Cache cacheI1;
+    //vars de sincronia para uso de la barrera
+    private boolean mode;
+    private int tCiclos;
+    public boolean alguienAcabaDeMorirMiAmigo;
+    Thread h0;
+    Thread h1;
+
     //buses
     public static ReentrantLock lockD = new ReentrantLock();
     public static ReentrantLock lockI = new ReentrantLock();
+
+    public static ReentrantLock lockCola = new ReentrantLock();
 
 
     private CyclicBarrier cyclicBarrier;
@@ -38,9 +44,21 @@ public class CPU {
 
     private Nucleo n0;
     private Nucleo n1;
+    public Contexto obtengaHillillo(){
+        Contexto c = null;
+        try{
+            lockCola.lock();
+            if(!contextos.isEmpty()){ c = contextos.removeFirst();}
+            lockCola.unlock();
+        }finally {
+
+        }
+        return c;
+    }
 
     public CPU(){
         quatum = 0;
+        tCiclos=0;
         contextos = new LinkedList<>();
         estadisticas = new LinkedList<>();
         hilillos = new LinkedList<>();
@@ -53,7 +71,7 @@ public class CPU {
         cacheI0.linkcache(cacheI1);
         cacheI1.linkcache(cacheI0);
 
-        cyclicBarrier = new CyclicBarrier(1);
+        cyclicBarrier = new CyclicBarrier(2, new EntreB());
 
         n0= new Nucleo(1, cacheD0, cacheI0, this, cyclicBarrier);
         n1= new Nucleo(1, cacheD1, cacheI1, this, cyclicBarrier);
@@ -69,6 +87,7 @@ public class CPU {
     }
 
     private void start(int qntm) {
+        mode= true;
         quatum = qntm;
         int nHilillos = 5;
         int pcAux=0;
@@ -102,13 +121,13 @@ public class CPU {
         //n1.cargarHilillo(contextos.removeFirst(), 0);
         //n0.cargarHilillo(contextos.removeFirst(), 1);
 
-        Thread h0= new Thread(n0);
-        //Thread h1= new Thread(n1);
+        h0= new Thread(n0);
+        h1= new Thread(n1);
         h0.start();
-        //h1.start();
+        h1.start();
         try {
             h0.join();
-           // h1.join();
+            h1.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -117,6 +136,24 @@ public class CPU {
         //cacheD0.storeCheck(45, 97);
         //cacheD1.storeCheck(46,32);
         //cacheD0.storeCheck(31,64);
+    }
+    private class EntreB implements Runnable{
+        public EntreB(){}
+        @Override
+        public void run() {
+            if(mode) if(++tCiclos%20 == 0) try {
+                int c = System.in.read();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if(alguienAcabaDeMorirMiAmigo){
+                if(h0.isAlive()) n1.cyclicBarrier = new CyclicBarrier(1, new EntreB());
+                if(h1.isAlive()) n0.cyclicBarrier = new CyclicBarrier(1, new EntreB());
+                alguienAcabaDeMorirMiAmigo = false;
+                System.out.println("Mis condolencias");
+            }
+
+        }
     }
 
     public static void main(String[] args){

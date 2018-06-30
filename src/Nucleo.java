@@ -311,18 +311,18 @@ public class Nucleo implements Runnable {
 
 
     public void run(){ // MAX 376
-        while(!cpu.contextos.isEmpty()){
-            if (!cpu.contextos.isEmpty() /*&& needContext[hililloP]*/) {
-                Contexto c = cpu.contextos.removeFirst();
-                cargarHilillo(c, hililloP);
-            }
+        Contexto k;
+        while((k=cpu.obtengaHillillo()) != null){
+
+            cargarHilillo(k, hililloP);
+
             if(id==0)hililloP++; hililloP%=2;
             boolean var;
             while (quantum[hililloP]!= 0){
                 if(548 <= pc[hililloP]){
                     int o = 0;
                 }
-                //System.out.println("Hilillo "+idHilillo[hililloP]+" ejecuntando pc "+pc[hililloP]);
+                System.out.println("Hilillo "+idHilillo[hililloP]+" ejecuntando pc "+pc[hililloP]);
                 int[] instruccion = fetch(hililloP);
                 pc[hililloP] += 4;
                 var = ejecutarI(instruccion, hililloP);
@@ -339,11 +339,18 @@ public class Nucleo implements Runnable {
                     e.printStackTrace();
                 }
             }
-            if(quantum[hililloP] == 0) {
+            if(quantum[hililloP] < 1) {
                 cpu.contextos.addLast(guardarHilillo(hililloP));
             }
         }
-
+        cpu.alguienAcabaDeMorirMiAmigo = true;
+        try {
+            cyclicBarrier.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (BrokenBarrierException e) {
+            e.printStackTrace();
+        }
     }
 
     private class HijoSuicida implements Runnable{
