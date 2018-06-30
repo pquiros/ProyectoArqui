@@ -19,6 +19,7 @@ public class CPU {
     int[] RAMD;
     int[] RAMI;
     int quatum;
+    public PrintWriter writer;
     private Cache cacheD0;
     private Cache cacheD1;
     private Cache cacheI0;
@@ -40,7 +41,7 @@ public class CPU {
     private CyclicBarrier cyclicBarrier;
     private int hilos;
 
-
+    Semaphore sem = new Semaphore(1, true);
 
     private Nucleo n0;
     private Nucleo n1;
@@ -74,7 +75,7 @@ public class CPU {
         cyclicBarrier = new CyclicBarrier(2, new EntreB());
 
         n0= new Nucleo(1, cacheD0, cacheI0, this, cyclicBarrier);
-        n1= new Nucleo(1, cacheD1, cacheI1, this, cyclicBarrier);
+        n1= new Nucleo(2, cacheD1, cacheI1, this, cyclicBarrier);
 
         RAMD= new int[104];
         RAMI= new int[640];
@@ -87,6 +88,10 @@ public class CPU {
     }
 
     private void start(int qntm) {
+        try {
+            writer = new PrintWriter("the-file-name.txt");
+        }catch(FileNotFoundException e){
+        }
         mode= true;
         quatum = qntm;
         int nHilillos = 5;
@@ -103,7 +108,6 @@ public class CPU {
                     }
                 }
                 Contexto contexto= new Contexto(p,i);
-                System.out.println("El hilillo "+i+" tiene un pc de "+p);
                 contextos.add(contexto);
             } catch (FileNotFoundException e) {
                 System.out.println("Error al leer el archivo "+i);
@@ -113,6 +117,7 @@ public class CPU {
                 e.printStackTrace();
             }
         }
+
         /*for(int kk: RAMI){
             System.out.print(kk);
         }*/
@@ -131,6 +136,9 @@ public class CPU {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        writer.close();
+
         // D: 96 | I: 640
 
         //cacheD0.storeCheck(45, 97);

@@ -4,6 +4,7 @@ import java.lang.Thread;
 import java.lang.Runnable;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Semaphore;
 
 public class Nucleo implements Runnable {
 
@@ -21,13 +22,14 @@ public class Nucleo implements Runnable {
     CyclicBarrier cyclicBarrier;
     int endAmount = 0;
     HijoSuicida hijoSuicida;
+    int tipoNucleo;
 
     public Nucleo(int tipo, Cache cD,Cache  cI, CPU c, CyclicBarrier cb) {
         cacheD= cD;
         cacheI= cI;
         cpu = c;
         cyclicBarrier = cb;
-
+        tipoNucleo = tipo;
         registrosHilo0 = new int[32];
 
         if (tipo == 0) {
@@ -62,8 +64,11 @@ public class Nucleo implements Runnable {
 
     Contexto guardarHilillo(int pos){
         Contexto c;
-        if(pos==1) c = new Contexto(registrosHilo1, pc[pos], idHilillo[pos]);
-        else c = new Contexto(registrosHilo0, pc[pos], idHilillo[pos]);
+        if(pos==1) {
+            c = new Contexto(registrosHilo1, pc[pos], idHilillo[pos]);
+        } else {
+            c = new Contexto(registrosHilo0, pc[pos], idHilillo[pos]);
+        }
         return c;
     }
 
@@ -77,20 +82,14 @@ public class Nucleo implements Runnable {
     }
 
     boolean ejecutarI(int[] instruccion, int iD) {
-        //System.out.print("[");
-        for(int y = 0; y<4; y++) {
-            //System.out.print(" " + instruccion[y] + " ");
+        try {
+            cpu.sem.acquire();
+            System.out.print(" --- Hilo " + this.tipoNucleo + " empieza ---\n");
+            System.out.print("[" + instruccion[0] + " " + instruccion[1] + " " + instruccion[2] + " " + instruccion[3] + "]\n");
+            cpu.sem.release();
+        } catch(final InterruptedException ie) {
+            System.out.print("Oh no");
         }
-        //System.out.print("]\n");
-        if(3 < instruccion.length){
-            if(instruccion[0] == 2 && instruccion[1] == 31 && instruccion[2] == 0 && instruccion[3] == 0){
-                int o = 0;
-            }
-            if(instruccion[0] == 8 && instruccion[1] == 0 && instruccion[2] == 3 && instruccion[3] == 3){
-                int o = 0;
-            }
-        }
-        int ole = 0;
         switch (instruccion[0]) {
             //DADDI
             case 8:
@@ -187,19 +186,19 @@ public class Nucleo implements Runnable {
             //JAL
             case 3:
                 if (hililloP == 0) {
-                    registrosHilo0[31] = instruccion[1];
-                    pc[0] = instruccion[1];
+                    registrosHilo0[31] = pc[0];
+                    pc[0] = pc[0] + instruccion[3];
                 } else {
-                    registrosHilo1[31] = instruccion[1];
-                    pc[1] = instruccion[1];
+                    registrosHilo1[31] = pc[1];
+                    pc[1] = pc[1] + instruccion[3];
                 }
                 break;
             //JR
             case 2:
                 if (hililloP == 0) {
-                    pc[0] += registrosHilo0[instruccion[1]];
+                    pc[0] = registrosHilo0[instruccion[1]];
                 } else {
-                    pc[1] += registrosHilo1[instruccion[1]];
+                    pc[1] = registrosHilo1[instruccion[1]];
                 }
                 break;
             //LW
@@ -225,9 +224,15 @@ public class Nucleo implements Runnable {
             //FIN
             case 63:
                 ++endAmount;
-                System.out.print(idHilillo[hililloP]+" : ");
-                for(int n=0; n<32; n++){
-                    System.out.println(n+" "+registrosHilo0[n]+" ");
+                try {
+                    cpu.sem.acquire();
+                    cpu.writer.println(idHilillo[hililloP] + " : \n");
+                    for (int n = 0; n < 32; n++) {
+                        cpu.writer.println(n + " " + registrosHilo0[n]);
+                    }
+                    cpu.sem.release();
+                } catch(final InterruptedException ie) {
+                    System.out.print("Oh no");
                 }
                 cpu.estadisticas.addLast(guardarHilillo(hililloP));
                 needContext[hililloP] = true;
@@ -235,6 +240,19 @@ public class Nucleo implements Runnable {
                 return true;
             default:
                 System.out.println("Error instruccion no reconociada!!!");
+        }
+        try {
+            cpu.sem.acquire();
+            System.out.print(" --- Hilo " + this.tipoNucleo + " termino | Quantum: " + this.quantum[hililloP] + " ---\n");
+            System.out.print("[" + instruccion[0] + " " + instruccion[1] + " " + instruccion[2] + " " + instruccion[3] + "]\n");
+            if (instruccion[0] == 35 || instruccion[0] == 43) {
+                System.out.print("Cache " + (instruccion[3] / 4) + " = " + this.cacheD.getmemint(instruccion[3] / 4) + "\n");
+            } else {
+                System.out.print("Registro " + instruccion[2] + " = " + this.registrosHilo0[instruccion[2]] + "\n");
+            }
+            cpu.sem.release();
+        } catch(final InterruptedException ie) {
+            System.out.print("Oh no");
         }
         return false;
     }
@@ -260,8 +278,10 @@ public class Nucleo implements Runnable {
             int count = 0;
 
             while (success == -1) {
-                count++;
-                if(count > 999) System.out.println("Loopiando en el loud fo'eva my nigg.");
+                    count++;
+                if(count > 999) {
+                    System.out.println("Loopiando en el loud fo'eva my nigg.");
+                }
                 try {
                     lockAct = cacheD.lock.tryLock();
 
@@ -319,25 +339,25 @@ public class Nucleo implements Runnable {
             if(id==0)hililloP++; hililloP%=2;
             boolean var;
             while (quantum[hililloP]!= 0){
-                if(548 <= pc[hililloP]){
-                    int o = 0;
-                }
-                System.out.println("Hilillo "+idHilillo[hililloP]+" ejecuntando pc "+pc[hililloP]);
                 int[] instruccion = fetch(hililloP);
                 pc[hililloP] += 4;
+                if(idHilillo[hililloP] == 5 &&  instruccion[0] == 2){
+                    int o = 0;
+                }
                 var = ejecutarI(instruccion, hililloP);
-                //if(instruccion[0] != 63) {
-                    //pc[hililloP] += 4;
-                //}
+                if(instruccion[0] == 43 && instruccion[1] == 16 && instruccion[2] == 2 && instruccion[3] == 0) {
+                    int o = 0;
+                }
                 if (var) {break;}
                 quantum[hililloP]--;
+                /*
                 try {
                     cyclicBarrier.await();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (BrokenBarrierException e) {
                     e.printStackTrace();
-                }
+                }*/
             }
             if(quantum[hililloP] < 1) {
                 cpu.contextos.addLast(guardarHilillo(hililloP));

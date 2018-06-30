@@ -44,6 +44,11 @@ public class Cache {
         }
     }
 
+    public int getmemint(int pos){
+        pos = pos % (blockCount * size);
+        return this.memoria[pos];
+    }
+
     public void linkcache(Cache other){
         this.othercache = other;
     }
@@ -90,7 +95,6 @@ public class Cache {
                             }
 
                             // Carga el bloque desde memoria principal.
-                            // System.out.println("CARGANDO BLOQUE " + blocks);
                             for (int i = 0; i < size; i++) {
                                 if (tipo == 'D') {
 
@@ -115,7 +119,6 @@ public class Cache {
                 if (cpu.lockI.isHeldByCurrentThread())
                     cpu.lockI.unlock();
             }
-            // System.out.println("load" + tipo + " del b " + blocks + " a p " + position);
             return 0;
         }catch (ArrayIndexOutOfBoundsException e){
             return -1;
@@ -172,8 +175,10 @@ public class Cache {
         int count= 0;
 
         while(success == -1) {
+            if(count > 999) {
+                System.out.println("Loopiando en el store fo'eva my nigg.");
+            }
             count++;
-            if(count > 999) System.out.println("Loopiando en el stroere fo'eva my nigga.");
             try{
                 lockAct = this.lock.tryLock();
 
@@ -300,13 +305,9 @@ public class Cache {
     int[] retornaIns(int nInstrucion){
         int[] i = new int[4];
         int pos = nInstrucion%size + size*((nInstrucion/size)%blockCount);
-        //System.out.print(nInstrucion + " " + pos + " [");
         for(int y = 0; y<4; y++) {
             i[y]=memoria[pos+y];
-            //System.out.print(" " + i[y] + " ");
         }
-        //System.out.print("]");
-        //System.out.println();
         return i;
     }
 
