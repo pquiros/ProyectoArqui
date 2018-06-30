@@ -187,11 +187,11 @@ public class Nucleo implements Runnable {
             //JAL
             case 3:
                 if (hililloP == 0) {
-                    registrosHilo0[31] = instruccion[3];
-                    pc[0] += instruccion[3];
+                    registrosHilo0[31] = instruccion[1];
+                    pc[0] = instruccion[1];
                 } else {
-                    registrosHilo1[31] = instruccion[3];
-                    pc[1] += instruccion[3];
+                    registrosHilo1[31] = instruccion[1];
+                    pc[1] = instruccion[1];
                 }
                 break;
             //JR
@@ -233,6 +233,8 @@ public class Nucleo implements Runnable {
                 needContext[hililloP] = true;
                 if(id==0)hililloP++; hililloP%=2;
                 return true;
+            default:
+                System.out.println("Error instruccion no reconociada!!!");
         }
         return false;
     }
@@ -255,8 +257,11 @@ public class Nucleo implements Runnable {
             int wordp = direction % cacheD.getBlockSize();
             int position = blocks % cacheD.getBlockAmount();
             int success = -1;
+            int count = 0;
 
             while (success == -1) {
+                count++;
+                if(count > 999) System.out.println("Loopiando en el loud fo'eva my nigg.");
                 try {
                     lockAct = cacheD.lock.tryLock();
 
@@ -321,9 +326,9 @@ public class Nucleo implements Runnable {
                 int[] instruccion = fetch(hililloP);
                 pc[hililloP] += 4;
                 var = ejecutarI(instruccion, hililloP);
-                /*if(instruccion[0] != 63) {
-                    pc[hililloP] += 4;
-                }*/
+                //if(instruccion[0] != 63) {
+                    //pc[hililloP] += 4;
+                //}
                 if (var) {break;}
                 quantum[hililloP]--;
                 try {

@@ -169,8 +169,11 @@ public class Cache {
         int wordp = direction % size;
         int position = blocks % blockCount;
         int success = -1;
+        int count= 0;
 
         while(success == -1) {
+            count++;
+            if(count > 999) System.out.println("Loopiando en el stroere fo'eva my nigga.");
             try{
                 lockAct = this.lock.tryLock();
 
@@ -274,7 +277,7 @@ public class Cache {
                 // Reloj + 1
             }
         }else{
-            return -1; // Return 'WAT?!'
+            return -1;
         }
 
         return 0;
@@ -300,7 +303,7 @@ public class Cache {
         //System.out.print(nInstrucion + " " + pos + " [");
         for(int y = 0; y<4; y++) {
             i[y]=memoria[pos+y];
-        //    System.out.print(" " + i[y] + " ");
+            //System.out.print(" " + i[y] + " ");
         }
         //System.out.print("]");
         //System.out.println();
