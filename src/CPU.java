@@ -2,6 +2,7 @@ package src;
 
 import java.io.*;
 import  java.util.LinkedList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.StringTokenizer;
 import java.util.concurrent.BrokenBarrierException;
@@ -87,20 +88,21 @@ public class CPU {
         }
     }
 
-    private void start(int qntm) {
+    private void start(int qntm, List<Integer> nHilillos) {
         try {
             writer = new PrintWriter("the-file-name.txt");
         }catch(FileNotFoundException e){
         }
         mode= true;
         quatum = qntm;
-        int nHilillos = 5;
+        //int nHilillos = 5;
         int pcAux=0;
-        for(int i=0; i<=nHilillos; i++){
+        for(int i=0; i</*=*/nHilillos.size(); i++){
             int p = pcAux;
+            String h = nHilillos.get(i).toString();
             String line;
             try {
-                BufferedReader in = new BufferedReader(new FileReader(i+".txt"));
+                BufferedReader in = new BufferedReader(new FileReader(/*i*/h+".txt"));
                 while (((line = in.readLine()) != null)){
                     StringTokenizer st = new StringTokenizer(line);
                     while (st.hasMoreTokens()) {
@@ -169,6 +171,7 @@ public class CPU {
         String mens2 = "Debe introducir un numero";
 
         CPU cpu = new CPU();
+        List<Integer> listaHilillos = cpu.escogerHilillos();
         int qntm = 0;
         String s;
         boolean isNumber = false;
@@ -181,7 +184,7 @@ public class CPU {
             try {
                 qntm = Integer.parseInt(s);
                 isNumber = true;
-                cpu.start(qntm);
+                cpu.start(qntm, listaHilillos);
             }
             catch (NumberFormatException e){
                 System.out.println(mens2);
@@ -189,7 +192,45 @@ public class CPU {
         }
     }
 
+private List escogerHilillos() {
 
+    boolean correcto = false;
+    List<Integer> listaDeHilillos = null;
+
+    while (correcto == false) {
+        System.out.println("Introduzca el número de cada hilillo que desea correr, separado por un espacio en blanco");
+
+        Scanner sc = new Scanner(System.in);
+        listaDeHilillos = new LinkedList<>();
+        StringTokenizer st = new StringTokenizer(sc.nextLine(), " ");
+        while(st.hasMoreTokens())
+        {
+            try {
+                listaDeHilillos.add(Integer.parseInt(st.nextToken()));
+                correcto = true;
+
+            } catch (NumberFormatException nfe) {
+                System.out.println("Debe introducir números\n");
+                listaDeHilillos.clear();
+                correcto = false;
+            }
+
+        }
+        for (int i = 0; i < listaDeHilillos.size(); i++){
+            if (listaDeHilillos.get(i) != 0 && listaDeHilillos.get(i) != 1 && listaDeHilillos.get(i) != 2 && listaDeHilillos.get(i) != 3 && listaDeHilillos.get(i) != 4 && listaDeHilillos.get(i) != 5) {
+                System.out.println("Los hilillos deben estar en el rango 0-5 y separados por un espacio\n");
+                correcto = false;
+                listaDeHilillos.clear();
+            }
+        }
+    };
+    /*String s = "";
+    for (int i = 0; i < listaDeHilillos.size(); i++){
+        s += listaDeHilillos.get(i) + " ";
+    }
+    System.out.println("Hilillos: " + s);*/
+    return listaDeHilillos;
+}
 //Ejecuta la barrera de espera para el cpu
     public void ejecutar() {
         //try {
