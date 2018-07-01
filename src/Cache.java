@@ -1,5 +1,7 @@
 package src;
 
+import java.util.LinkedList;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Cache {
@@ -12,11 +14,17 @@ public class Cache {
     private char tipo;
     private int blockCount;
     private int size;
+    private Nucleo nucleo;
+    public static LinkedList<ReentrantLock> locksP;
     public static ReentrantLock lock = new ReentrantLock();
+
 
     public Cache(char tippo, int bloque, CPU cepeu) {
 
-
+        locksP = new LinkedList<>();
+        for(int lol = 0; lol < bloque ; lol++){
+            locksP.add(new ReentrantLock());
+        }
         tipo = tippo;
         cpu = cepeu;
         int tamano = 0;// tamano de bloque
@@ -52,6 +60,10 @@ public class Cache {
     public void linkcache(Cache other){
         this.othercache = other;
     }
+    public void linkNu(Nucleo nu){
+        this.nucleo = nu;
+    }
+
 
     public int loadFromMemory(int direction){
         try {
@@ -74,7 +86,11 @@ public class Cache {
                     return -1;
                 } else {
                     if (estados[position] == 'M') { // Si esta en M quiere decir que es un bloque victima
-                        // Reloj + 39
+                        int cc = 40;
+                        while (cc > 0) {
+                            cc--;
+                            nucleo.cyclicBarrier.await();
+                        }
                         storeToMemory(direction); // Copia ese bloque a memoria y lo invalida en cache.
 
                         // Reloj + 1
@@ -83,7 +99,7 @@ public class Cache {
                     // Revizar la otra cache
 
                     try {
-                        otherLockAct = othercache.lock.tryLock(); // La posicion esta disponible en la otra cache?
+                        otherLockAct = othercache.locksP.get(position).tryLock(); // La posicion esta disponible en la otra cache?
 
                         if (!otherLockAct) { // NO
                             //no deberia retornar -1
@@ -105,14 +121,23 @@ public class Cache {
                             }
                             etiquetas[position] = blocks;
                             estados[position] = 'C';
-                            // Reloj +39
+                            int cc = 40;
+                            while (cc > 0) {
+                                //System.out.println("esssssssperando");
+                                cc--;
+                                nucleo.cyclicBarrier.await();
+                            }
                         }
 
                     } finally {
-                        if (othercache.lock.isHeldByCurrentThread())
-                            othercache.lock.unlock();
+                        if (othercache.locksP.get(position).isHeldByCurrentThread())
+                            othercache.locksP.get(position).unlock();
                     }
                 }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (BrokenBarrierException e) {
+                e.printStackTrace();
             } finally {
                 if (cpu.lockD.isHeldByCurrentThread())
                     cpu.lockD.unlock();
@@ -180,7 +205,7 @@ public class Cache {
             }
             count++;
             try{
-                lockAct = this.lock.tryLock();
+                lockAct = this.locksP.get(position).tryLock();
 
                 if(!lockAct){
                     success = -1;
@@ -191,7 +216,7 @@ public class Cache {
                         break;
                     }else{
                         try{
-                            otherLockAct = othercache.lock.tryLock(); // La posicion esta disponible en la otra cache?
+                            otherLockAct = othercache.locksP.get(position).tryLock(); // La posicion esta disponible en la otra cache?
 
                             if(!otherLockAct){ // NO
                                 // Pues nada, libera el bus en finally.
@@ -204,8 +229,8 @@ public class Cache {
                                 }
                             }
                         }finally{
-                            if(othercache.lock.isHeldByCurrentThread())
-                                othercache.lock.unlock();
+                            if(othercache.locksP.get(position).isHeldByCurrentThread())
+                                othercache.locksP.get(position).unlock();
                         }
                     }
 
@@ -216,8 +241,15 @@ public class Cache {
                     }
                 }
             }finally {
-                if(this.lock.isHeldByCurrentThread())
-                    this.lock.unlock();
+                if(this.locksP.get(position).isHeldByCurrentThread())
+                    this.locksP.get(position).unlock();
+            }
+            try {
+                nucleo.cyclicBarrier.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (BrokenBarrierException e) {
+                e.printStackTrace();
             }
         }
 
@@ -242,8 +274,8 @@ public class Cache {
                 }
                 result = storeToMemory(direction);
             }finally{
-                if(othercache.lock.isHeldByCurrentThread())
-                    othercache.lock.unlock();
+                if(othercache.locksP.get(position).isHeldByCurrentThread())
+                    othercache.locksP.get(position).unlock();
                 if (cpu.lockD.isHeldByCurrentThread())
                     cpu.lockD.unlock();
                 if (cpu.lockI.isHeldByCurrentThread())

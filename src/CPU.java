@@ -59,24 +59,30 @@ public class CPU {
     }
 
     public CPU(){
+        cyclicBarrier = new CyclicBarrier(2, new EntreB());
         quatum = 0;
         tCiclos=0;
         contextos = new LinkedList<>();
         estadisticas = new LinkedList<>();
         hilillos = new LinkedList<>();
-        cacheD0 = new Cache('D', 8, this);
+        cacheD0 = new Cache('D', 4, this);
         cacheD1 = new Cache('D', 4, this);
-        cacheI0 = new Cache('I', 8, this);
+        cacheI0 = new Cache('I', 4, this);
         cacheI1 = new Cache('I', 4, this);
         cacheD0.linkcache(cacheD1);
         cacheD1.linkcache(cacheD0);
         cacheI0.linkcache(cacheI1);
         cacheI1.linkcache(cacheI0);
 
-        cyclicBarrier = new CyclicBarrier(2, new EntreB());
+
 
         n0= new Nucleo(1, cacheD0, cacheI0, this, cyclicBarrier);
         n1= new Nucleo(2, cacheD1, cacheI1, this, cyclicBarrier);
+
+        cacheD0.linkNu(n0);
+        cacheD1.linkNu(n1);
+        cacheI0.linkNu(n0);
+        cacheI1.linkNu(n1);
 
         RAMD= new int[104];
         RAMI= new int[640];
@@ -93,7 +99,7 @@ public class CPU {
             writer = new PrintWriter("the-file-name.txt");
         }catch(FileNotFoundException e){
         }
-        mode= true;
+        //mode= true;
         quatum = qntm;
         //int nHilillos = 5;
         int pcAux=0;
@@ -109,7 +115,7 @@ public class CPU {
                         RAMI[pcAux++] = Integer.parseInt(st.nextToken());
                     }
                 }
-                Contexto contexto= new Contexto(p,i);
+                Contexto contexto= new Contexto(p,nHilillos.get(i));
                 contextos.add(contexto);
             } catch (FileNotFoundException e) {
                 System.out.println("Error al leer el archivo "+i);
@@ -151,16 +157,17 @@ public class CPU {
         public EntreB(){}
         @Override
         public void run() {
-            if(mode) if(++tCiclos%20 == 0) try {
+            if(mode) if(++tCiclos%20 == 0){ try {
+                //System.out.println("Espero");
                 int c = System.in.read();
             } catch (IOException e) {
                 e.printStackTrace();
-            }
+            }}
             if(alguienAcabaDeMorirMiAmigo){
                 if(h0.isAlive()) n1.cyclicBarrier = new CyclicBarrier(1, new EntreB());
                 if(h1.isAlive()) n0.cyclicBarrier = new CyclicBarrier(1, new EntreB());
                 alguienAcabaDeMorirMiAmigo = false;
-                System.out.println("Mis condolencias");
+                //System.out.println("Mis condolencias");
             }
 
         }
@@ -198,6 +205,13 @@ private List escogerHilillos() {
     List<Integer> listaDeHilillos = null;
 
     while (correcto == false) {
+
+        System.out.println("Modo 1 lento 0 rapido.");
+        Scanner scc = new Scanner(System.in);
+        StringTokenizer stt = new StringTokenizer(scc.nextLine(), " ");
+        if(Integer.parseInt(stt.nextToken()) == 1){mode = true;
+            System.out.println("Corriendo en modo lento");}
+        else  mode = false;
         System.out.println("Introduzca el número de cada hilillo que desea correr, separado por un espacio en blanco");
 
         Scanner sc = new Scanner(System.in);

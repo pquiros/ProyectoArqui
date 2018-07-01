@@ -84,7 +84,7 @@ public class Nucleo implements Runnable {
     boolean ejecutarI(int[] instruccion, int iD) {
         try {
             cpu.sem.acquire();
-            System.out.print(" --- Hilo " + this.tipoNucleo + " empieza ---\n");
+            System.out.print(" --- Hilo " + this.idHilillo[0] + " empieza ---\n");
             System.out.print("[" + instruccion[0] + " " + instruccion[1] + " " + instruccion[2] + " " + instruccion[3] + "]\n");
             cpu.sem.release();
         } catch(final InterruptedException ie) {
@@ -243,7 +243,7 @@ public class Nucleo implements Runnable {
         }
         try {
             cpu.sem.acquire();
-            System.out.print(" --- Hilo " + this.tipoNucleo + " termino | Quantum: " + this.quantum[hililloP] + " ---\n");
+            System.out.print(" --- Hilo " + this.idHilillo[0] + " termino | Quantum: " + this.quantum[hililloP] + " ---\n");
             System.out.print("[" + instruccion[0] + " " + instruccion[1] + " " + instruccion[2] + " " + instruccion[3] + "]\n");
             if (instruccion[0] == 35 || instruccion[0] == 43) {
                 System.out.print("Cache " + (instruccion[3] / 4) + " = " + this.cacheD.getmemint(instruccion[3] / 4) + "\n");
@@ -283,7 +283,7 @@ public class Nucleo implements Runnable {
                     System.out.println("Loopiando en el loud fo'eva my nigg.");
                 }
                 try {
-                    lockAct = cacheD.lock.tryLock();
+                    lockAct = cacheD.locksP.get(position).tryLock();
 
                     if (!lockAct) {
                         success = -1;
@@ -299,8 +299,15 @@ public class Nucleo implements Runnable {
                         }
                     }
                 } finally {
-                    if (cacheD.lock.isHeldByCurrentThread())
-                        cacheD.lock.unlock();
+                    if (cacheD.locksP.get(position).isHeldByCurrentThread())
+                        cacheD.locksP.get(position).unlock();
+                }
+                try {
+                    cyclicBarrier.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (BrokenBarrierException e) {
+                    e.printStackTrace();
                 }
             }
 
@@ -323,6 +330,13 @@ public class Nucleo implements Runnable {
                 int o = 0;
             }
             cacheI.loadFromMemory(d);
+            try {
+                cyclicBarrier.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (BrokenBarrierException e) {
+                e.printStackTrace();
+            }
         }
 
         // hilo se debe matar con hilo.join() en cuanto el padre resuelva el fallo de cache?
@@ -350,14 +364,14 @@ public class Nucleo implements Runnable {
                 }
                 if (var) {break;}
                 quantum[hililloP]--;
-                /*
+
                 try {
                     cyclicBarrier.await();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (BrokenBarrierException e) {
                     e.printStackTrace();
-                }*/
+                }
             }
             if(quantum[hililloP] < 1) {
                 cpu.contextos.addLast(guardarHilillo(hililloP));
