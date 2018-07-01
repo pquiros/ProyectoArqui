@@ -96,7 +96,7 @@ public class CPU {
 
     private void start(int qntm, List<Integer> nHilillos) {
         try {
-            writer = new PrintWriter("the-file-name.txt");
+            writer = new PrintWriter("Resultados.txt");
         }catch(FileNotFoundException e){
         }
         //mode= true;

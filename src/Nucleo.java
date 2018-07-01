@@ -226,7 +226,7 @@ public class Nucleo implements Runnable {
                 ++endAmount;
                 try {
                     cpu.sem.acquire();
-                    cpu.writer.println(idHilillo[hililloP] + " : \n");
+                    cpu.writer.println("\n" + idHilillo[hililloP] + " : \n");
                     for (int n = 0; n < 32; n++) {
                         cpu.writer.println(n + " " + registrosHilo0[n]);
                     }
@@ -248,7 +248,7 @@ public class Nucleo implements Runnable {
             if (instruccion[0] == 35 || instruccion[0] == 43) {
                 System.out.print("Cache " + (instruccion[3] / 4) + " = " + this.cacheD.getmemint(instruccion[3] / 4) + "\n");
             } else {
-                System.out.print("\t\t\t\t\t\t\t\t\tRegistro " + instruccion[2] + " = " + this.registrosHilo0[instruccion[2]] + "\n");
+                System.out.print("Registro " + instruccion[2] + " = " + this.registrosHilo0[instruccion[2]] + "\n");
             }
             cpu.sem.release();
         } catch(final InterruptedException ie) {
