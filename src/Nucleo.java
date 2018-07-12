@@ -310,8 +310,6 @@ public class Nucleo implements Runnable {
         }
     }
 
-    public void SW(){}
-
     void falloDeCache(Cache c, int d, int hillillo){
         if(id==0){
             /*hijoSuicida = new HijoSuicida();
@@ -350,14 +348,15 @@ public class Nucleo implements Runnable {
                 }
                 if (var) {break;}
                 quantum[hililloP]--;
-                /*
-                try {
-                    cyclicBarrier.await();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (BrokenBarrierException e) {
-                    e.printStackTrace();
-                }*/
+                if(cpu.slowmode) {
+                    try {
+                        cyclicBarrier.await();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (BrokenBarrierException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
             if(quantum[hililloP] < 1) {
                 cpu.contextos.addLast(guardarHilillo(hililloP));
@@ -371,6 +370,8 @@ public class Nucleo implements Runnable {
         } catch (BrokenBarrierException e) {
             e.printStackTrace();
         }
+
+
     }
 
     private class HijoSuicida implements Runnable{

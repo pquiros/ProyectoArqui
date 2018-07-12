@@ -31,6 +31,7 @@ public class CPU {
     public boolean alguienAcabaDeMorirMiAmigo;
     Thread h0;
     Thread h1;
+    boolean slowmode = false;
 
     //buses
     public static ReentrantLock lockD = new ReentrantLock();
@@ -46,21 +47,24 @@ public class CPU {
 
     private Nucleo n0;
     private Nucleo n1;
-    public Contexto obtengaHillillo(){
+
+    public Contexto obtengaHillillo() {
         Contexto c = null;
-        try{
+        try {
             lockCola.lock();
-            if(!contextos.isEmpty()){ c = contextos.removeFirst();}
+            if (!contextos.isEmpty()) {
+                c = contextos.removeFirst();
+            }
             lockCola.unlock();
-        }finally {
+        } finally {
 
         }
         return c;
     }
 
-    public CPU(){
+    public CPU() {
         quatum = 0;
-        tCiclos=0;
+        tCiclos = 0;
         contextos = new LinkedList<>();
         estadisticas = new LinkedList<>();
         hilillos = new LinkedList<>();
@@ -75,44 +79,44 @@ public class CPU {
 
         cyclicBarrier = new CyclicBarrier(2, new EntreB());
 
-        n0= new Nucleo(1, cacheD0, cacheI0, this, cyclicBarrier);
-        n1= new Nucleo(2, cacheD1, cacheI1, this, cyclicBarrier);
+        n0 = new Nucleo(1, cacheD0, cacheI0, this, cyclicBarrier);
+        n1 = new Nucleo(2, cacheD1, cacheI1, this, cyclicBarrier);
 
-        RAMD= new int[104];
-        RAMI= new int[640];
-        for(int i=0; i<RAMI.length; ++i){
-            RAMI[i]=1;
+        RAMD = new int[104];
+        RAMI = new int[640];
+        for (int i = 0; i < RAMI.length; ++i) {
+            RAMI[i] = 1;
         }
-        for(int i=0; i<RAMD.length; i++){
-            RAMD[i]=1;
+        for (int i = 0; i < RAMD.length; i++) {
+            RAMD[i] = 1;
         }
     }
 
     private void start(int qntm, List<Integer> nHilillos) {
         try {
             writer = new PrintWriter("the-file-name.txt");
-        }catch(FileNotFoundException e){
+        } catch (FileNotFoundException e) {
         }
-        mode= true;
+        mode = true;
         quatum = qntm;
         //int nHilillos = 5;
-        int pcAux=0;
-        for(int i=0; i</*=*/nHilillos.size(); i++){
+        int pcAux = 0;
+        for (int i = 0; i </*=*/nHilillos.size(); i++) {
             int p = pcAux;
             String h = nHilillos.get(i).toString();
             String line;
             try {
-                BufferedReader in = new BufferedReader(new FileReader(/*i*/h+".txt"));
-                while (((line = in.readLine()) != null)){
+                BufferedReader in = new BufferedReader(new FileReader(/*i*/h + ".txt"));
+                while (((line = in.readLine()) != null)) {
                     StringTokenizer st = new StringTokenizer(line);
                     while (st.hasMoreTokens()) {
                         RAMI[pcAux++] = Integer.parseInt(st.nextToken());
                     }
                 }
-                Contexto contexto= new Contexto(p,i);
+                Contexto contexto = new Contexto(p, i);
                 contextos.add(contexto);
             } catch (FileNotFoundException e) {
-                System.out.println("Error al leer el archivo "+i);
+                System.out.println("Error al leer el archivo " + i);
                 e.printStackTrace();
             } catch (IOException e) {
                 System.out.println("Error en el buffer.");
@@ -128,8 +132,8 @@ public class CPU {
         //n1.cargarHilillo(contextos.removeFirst(), 0);
         //n0.cargarHilillo(contextos.removeFirst(), 1);
 
-        h0= new Thread(n0);
-        h1= new Thread(n1);
+        h0 = new Thread(n0);
+        h1 = new Thread(n1);
         h0.start();
         h1.start();
         try {
@@ -139,7 +143,47 @@ public class CPU {
             e.printStackTrace();
         }
 
+        for(int pp = 0; pp<104; pp++){
+            if(pp%4==0) System.out.println();
+            System.out.print(RAMD[pp]+" ");
+        }
+        System.out.println(); System.out.println(tCiclos);
+
+        System.out.println("Primera cache.");
+        for(int pp = 0; pp<4; pp++){
+
+            System.out.print("Instr");
+            for(int ppp = 0; ppp<4; ppp++){
+                System.out.print(cacheD0.memoria[pp*4+ppp]);
+            }
+
+            System.out.print(" estiqueta ");
+            System.out.print(cacheD0.etiquetas[pp]);
+
+            System.out.print(" estado ");
+            System.out.print(cacheD0.estados[pp]);
+            System.out.println();
+        }
+        System.out.println("Segunda cache.");
+        for(int pp = 0; pp<4; pp++){
+
+            System.out.print("Instr");
+            for(int ppp = 0; ppp<4; ppp++){
+
+                System.out.print(cacheD1.memoria[pp*4+ppp]);
+            }
+
+            System.out.print(" estiqueta ");
+            System.out.print(cacheD1.etiquetas[pp]);
+
+            System.out.print(" estado ");
+            System.out.print(cacheD1.estados[pp]);
+            System.out.println();
+        }
+
         writer.close();
+
+
 
         // D: 96 | I: 640
 
@@ -147,18 +191,22 @@ public class CPU {
         //cacheD1.storeCheck(46,32);
         //cacheD0.storeCheck(31,64);
     }
-    private class EntreB implements Runnable{
-        public EntreB(){}
+
+    private class EntreB implements Runnable {
+        public EntreB() {
+        }
+
         @Override
         public void run() {
-            if(mode) if(++tCiclos%20 == 0) try {
+            tCiclos++;
+            if (mode) if (tCiclos % 20 == 0) try {
                 int c = System.in.read();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            if(alguienAcabaDeMorirMiAmigo){
-                if(h0.isAlive()) n1.cyclicBarrier = new CyclicBarrier(1, new EntreB());
-                if(h1.isAlive()) n0.cyclicBarrier = new CyclicBarrier(1, new EntreB());
+            if (alguienAcabaDeMorirMiAmigo) {
+                if (h0.isAlive()) n1.cyclicBarrier = new CyclicBarrier(1, new EntreB());
+                if (h1.isAlive()) n0.cyclicBarrier = new CyclicBarrier(1, new EntreB());
                 alguienAcabaDeMorirMiAmigo = false;
                 System.out.println("Mis condolencias");
             }
@@ -166,7 +214,7 @@ public class CPU {
         }
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         String mens1 = "Introduzca el quantum que desea asignar al programa";
         String mens2 = "Debe introducir un numero";
 
@@ -177,7 +225,7 @@ public class CPU {
         boolean isNumber = false;
         System.out.println(mens1);
 
-        while(qntm < 1 && !isNumber){
+        while (qntm < 1 && !isNumber) {
             Scanner scan = new Scanner(System.in);
             s = scan.next();
 
@@ -185,62 +233,57 @@ public class CPU {
                 qntm = Integer.parseInt(s);
                 isNumber = true;
                 cpu.start(qntm, listaHilillos);
-            }
-            catch (NumberFormatException e){
+            } catch (NumberFormatException e) {
                 System.out.println(mens2);
             }
         }
     }
 
-private List escogerHilillos() {
+    private List escogerHilillos() {
 
-    boolean correcto = false;
-    List<Integer> listaDeHilillos = null;
+        boolean correcto = false;
+        List<Integer> listaDeHilillos = null;
 
-    while (correcto == false) {
-        System.out.println("Introduzca el número de cada hilillo que desea correr, separado por un espacio en blanco");
+        while (correcto == false) {
+            System.out.println("Introduzca el número de cada hilillo que desea correr, separado por un espacio en blanco");
+            String s;
+            Scanner sc = new Scanner(System.in);
+            listaDeHilillos = new LinkedList<>();
+            StringTokenizer st = new StringTokenizer(sc.nextLine(), " ");
 
-        Scanner sc = new Scanner(System.in);
-        listaDeHilillos = new LinkedList<>();
-        StringTokenizer st = new StringTokenizer(sc.nextLine(), " ");
-        while(st.hasMoreTokens())
-        {
-            try {
-                listaDeHilillos.add(Integer.parseInt(st.nextToken()));
-                correcto = true;
+            System.out.println("Quiere activar la modalidad lenta? S = si, cualquier otra entrada = no");
+            s = sc.next();
 
-            } catch (NumberFormatException nfe) {
-                System.out.println("Debe introducir números\n");
-                listaDeHilillos.clear();
-                correcto = false;
+            if (s.equalsIgnoreCase("s")) {
+                this.slowmode = true;
             }
 
-        }
-        for (int i = 0; i < listaDeHilillos.size(); i++){
-            if (listaDeHilillos.get(i) != 0 && listaDeHilillos.get(i) != 1 && listaDeHilillos.get(i) != 2 && listaDeHilillos.get(i) != 3 && listaDeHilillos.get(i) != 4 && listaDeHilillos.get(i) != 5) {
-                System.out.println("Los hilillos deben estar en el rango 0-5 y separados por un espacio\n");
-                correcto = false;
-                listaDeHilillos.clear();
+            while (st.hasMoreTokens()) {
+                try {
+                    listaDeHilillos.add(Integer.parseInt(st.nextToken()));
+                    correcto = true;
+
+                } catch (NumberFormatException nfe) {
+                    System.out.println("Debe introducir números\n");
+                    listaDeHilillos.clear();
+                    correcto = false;
+                }
+
+            }
+            for (int i = 0; i < listaDeHilillos.size(); i++) {
+                if (listaDeHilillos.get(i) != 0 && listaDeHilillos.get(i) != 1 && listaDeHilillos.get(i) != 2 && listaDeHilillos.get(i) != 3 && listaDeHilillos.get(i) != 4 && listaDeHilillos.get(i) != 5) {
+                    System.out.println("Los hilillos deben estar en el rango 0-5 y separados por un espacio\n");
+                    correcto = false;
+                    listaDeHilillos.clear();
+                }
             }
         }
-    };
+        ;
     /*String s = "";
     for (int i = 0; i < listaDeHilillos.size(); i++){
         s += listaDeHilillos.get(i) + " ";
     }
     System.out.println("Hilillos: " + s);*/
-    return listaDeHilillos;
-}
-//Ejecuta la barrera de espera para el cpu
-    public void ejecutar() {
-        //try {
-
-            //cyclicBarrier.await();// Esta es la barrera que espera a todos los hilos
-
-        //} catch (InterruptedException ie) {
-            //ie.printStackTrace();
-        //} catch (BrokenBarrierException be) {
-            //be.printStackTrace();
-        //}
+        return listaDeHilillos;
     }
 }
