@@ -144,6 +144,45 @@ public class CPU {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        for(int pp = 0; pp<96; pp++){
+            if(pp%4==0) System.out.println();
+            System.out.print(RAMD[pp]+" ");
+        }
+        System.out.println("");
+        System.out.println("Reloj :");
+        System.out.println(tCiclos);
+
+        System.out.println("Primera cache.");
+        for(int pp = 0; pp<4; pp++){
+
+            System.out.print("Data ");
+            for(int ppp = 0; ppp<4; ppp++){
+                System.out.print(cacheD0.memoria[pp*4+ppp]+ "  ");
+            }
+
+            System.out.print(" estiqueta ");
+            System.out.print(cacheD0.etiquetas[pp]);
+
+            System.out.print(" estado ");
+            System.out.print(cacheD0.estados[pp]);
+            System.out.println();
+        }
+        System.out.println("Segunda cache.");
+        for(int pp = 0; pp<4; pp++){
+
+            System.out.print("Data  ");
+            for(int ppp = 0; ppp<4; ppp++){
+
+                System.out.print(cacheD1.memoria[pp*4+ppp]+" ");
+            }
+
+            System.out.print(" estiqueta ");
+            System.out.print(cacheD1.etiquetas[pp]);
+
+            System.out.print(" estado ");
+            System.out.print(cacheD1.estados[pp]);
+            System.out.println();
+        }
 
         writer.close();
 
@@ -157,7 +196,8 @@ public class CPU {
         public EntreB(){}
         @Override
         public void run() {
-            if(mode) if(++tCiclos%20 == 0){ try {
+            ++tCiclos;
+            if(mode) if(tCiclos%20 == 0){ try {
                 //System.out.println("Espero");
                 int c = System.in.read();
             } catch (IOException e) {

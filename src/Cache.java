@@ -8,9 +8,9 @@ public class Cache {
 
     private CPU cpu;
     private Cache othercache;
-    private char estados[];
-    private int etiquetas[];
-    private int memoria[];
+    public char estados[];
+    public int etiquetas[];
+    public int memoria[];
     private char tipo;
     private int blockCount;
     private int size;
