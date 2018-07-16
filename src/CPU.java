@@ -144,6 +144,9 @@ public class CPU {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        // Imprimir resultados
+
         for(int pp = 0; pp<96; pp++){
             if(pp%4==0) System.out.println();
             System.out.print(RAMD[pp]+" ");

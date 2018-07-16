@@ -358,10 +358,10 @@ public class Nucleo implements Runnable {
                 if(idHilillo[hililloP] == 5 &&  instruccion[0] == 2){
                     int o = 0;
                 }
-                var = ejecutarI(instruccion, hililloP);
                 if(instruccion[0] == 43 && instruccion[1] == 16 && instruccion[2] == 2 && instruccion[3] == 0) {
                     int o = 0;
                 }
+                var = ejecutarI(instruccion, hililloP);
                 if (var) {break;}
                 quantum[hililloP]--;
 

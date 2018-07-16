@@ -193,6 +193,7 @@ public class Cache {
         if(tipo=='D') direction/=4;
         boolean lockAct = false;
         boolean otherLockAct = false;
+        boolean PCLockAct = false;
         int blocks = direction / size;
         int wordp = direction % size;
         int position = blocks % blockCount;
@@ -216,26 +217,40 @@ public class Cache {
                         break;
                     }else{
                         try{
-                            otherLockAct = othercache.locksP.get(position).tryLock(); // La posicion esta disponible en la otra cache?
-
-                            if(!otherLockAct){ // NO
-                                // Pues nada, libera el bus en finally.
+                            if(tipo=='D') {
+                                PCLockAct = this.cpu.lockD.tryLock();
+                            }else{
+                                PCLockAct = this.cpu.lockI.tryLock();
                             }
-                            else{ // SI
-                                success = othercache.invalidate(direction);
-                                if(success == 0){
-                                    int otherPosition = blocks % othercache.getBlockAmount();
-                                    othercache.estados[otherPosition] = 'I';
+                            if(PCLockAct == true) {
+                                otherLockAct = othercache.locksP.get(position).tryLock(); // La posicion esta disponible en la otra cache?
+
+                                if (!otherLockAct) { // NO
+                                    // Pues nada, libera el bus en finally.
+                                } else { // SI
+                                    success = othercache.invalidate(direction);
+                                    if (success == -1) {
+                                        int otherPosition = blocks % othercache.getBlockAmount();
+                                        othercache.estados[otherPosition] = 'I';
+                                        success = 0;
+                                    }
                                 }
                             }
                         }finally{
+                            if(tipo=='D' && this.cpu.lockD.isHeldByCurrentThread()) {
+                                this.cpu.lockD.unlock();
+                            }else if(tipo!='D' && this.cpu.lockI.isHeldByCurrentThread()){
+                                this.cpu.lockI.unlock();
+                            }
                             if(othercache.locksP.get(position).isHeldByCurrentThread())
                                 othercache.locksP.get(position).unlock();
                         }
                     }
 
                     if(success == 0){
-                        loadFromMemory(direction);
+                        if(etiquetas[position] != direction || estados[position] == 'I') {
+                            loadFromMemory(direction);
+                        }
                         memoria[(position * size) + wordp] = data;
                         estados[position] = 'M';
                     }
@@ -256,6 +271,8 @@ public class Cache {
         return success;
     }
 
+    // Retorna 0 si un bloque C se dejo I, retorna -1 si el bloque es M
+
     public int invalidate(int direction){
         int result = 0;
         int blocks = direction / size;
@@ -266,20 +283,8 @@ public class Cache {
             result = 0;
         }else if((estados[position] == 'M') && etiquetas[position] == blocks){
             result = -1;
-            try{
-                if(tipo == 'D'){
-                    lockAct = cpu.lockD.tryLock();
-                }else if(tipo == 'I'){
-                    lockAct = cpu.lockI.tryLock();
-                }
+            if(tipo=='D' && this.cpu.lockD.isHeldByCurrentThread() || tipo!='D' && this.cpu.lockI.isHeldByCurrentThread()){
                 result = storeToMemory(direction);
-            }finally{
-                if(othercache.locksP.get(position).isHeldByCurrentThread())
-                    othercache.locksP.get(position).unlock();
-                if (cpu.lockD.isHeldByCurrentThread())
-                    cpu.lockD.unlock();
-                if (cpu.lockI.isHeldByCurrentThread())
-                    cpu.lockI.unlock();
             }
         }
 
@@ -301,7 +306,7 @@ public class Cache {
 
         if(lockAct == true){
             if(estados[position] == 'I'){
-                return 0; // Esta invalido o , no hay nada que hacer.
+                return 0; // Esta invalido, no hay nada que hacer.
             }else{
                 for (int i = 0; i < size; i++) {
                     if (tipo == 'D') {
